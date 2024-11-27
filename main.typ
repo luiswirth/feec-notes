@@ -316,12 +316,12 @@ $
 
 Barycentric coordinates exist for all $k$-simplicies.\
 They are a coordinate system relative to the simplex.\
-Where the barycenter of the simplex has coordinates $(1/k)^k$.
+Where the barycenter of the simplex has coordinates $(1/k)^k$.\
 
 $
   x = sum_(i=0)^k lambda^i (x) space v_i
 $
-with $sum_(i=0)^k lambda_i(x) = 1$ and inside the simplex $lambda_i (x) in [0,1]$ 
+with $sum_(i=0)^k lambda_i(x) = 1$ and inside the simplex $lambda_i (x) in [0,1]$ (partition of unity).
 
 $
   lambda^i (x) = det[v_0,dots,v_(i-1),x,v_(i+1),dots,v_k] / det[x_0,dots,v_k]
@@ -331,6 +331,14 @@ Linear functions on simplicies can be expressed as
 $
   u(x) = sum_(i=0)^k lambda^i (x) space u(v_i)
 $
+
+The following integral formula for powers of barycentric coordinate functions holds (NUMPDE):
+$
+  integral_sigma lambda_0^(alpha_0) dots.c lambda_d^(alpha_d) dif x
+  =
+  d! abs(K) (alpha_0 ! space dots.c space alpha_d !)/(alpha_0 + dots.c + alpha_d + d)!
+$
+where $sigma in Delta_d, avec(alpha) in NN^(d+1)$
 
 = Lagrange Basis
 #v(1cm)
@@ -377,6 +385,14 @@ Represented through the de Rham map and Whitney's one-sided inverse:\
 - The interpolation of a $k$-cochain yields a Whitney $k$-form.\
 - The integration of a Whitney $k$-form over each $k$-simples yields a $k$-cochain.
 
+
+Whitney forms are affine invariant. \
+Let $sigma = [x_0 dots x_n]$ and $tau = [y_0 dots y_n]$ and $phi: sigma -> tau$
+affine map, such that $phi(x_i) = y_i$, then
+$
+  cal(W)[x_0 dots x_n] = phi^* (cal(W)[y_0 dots y_n])
+$
+
 The Whitney basis ${lambda_sigma}$ is constructed from barycentric coordinate functions ${lambda_i}$.
 
 $
@@ -386,29 +402,107 @@ $
 $
 
 Some expansions:
+#align(center)[#grid(
+  columns: 2,
+  gutter: 10%,
+  $
+    cal(W)[v_0 v_1] =
+    &lambda_0 dif lambda_1 - lambda_1 dif lambda_0
+    \
+    cal(W)[v_0 v_1 v_2] =
+      &2 lambda_0 (dif lambda_1 wedge dif lambda_2) \
+    - &2 lambda_1 (dif lambda_0 wedge dif lambda_2) \
+    + &2 lambda_2 (dif lambda_0 wedge dif lambda_1) \
+  $,
+  $
+    cal(W)[v_0 v_1 v_2 v_3] =
+      &6 lambda_0 (dif lambda_1 wedge dif lambda_2 wedge dif lambda_3) \
+    - &6 lambda_1 (dif lambda_0 wedge dif lambda_2 wedge dif lambda_3) \
+    + &6 lambda_2 (dif lambda_0 wedge dif lambda_1 wedge dif lambda_3) \
+    - &6 lambda_3 (dif lambda_0 wedge dif lambda_1 wedge dif lambda_2) \
+  $
+)]
+
+#pagebreak()
+
+== Reference 1-simplex
+
 $
-  cal(W)[v_0 v_1] =
-  &lambda_0 dif lambda_1 - lambda_1 dif lambda_0
+  v_0 = (0), v_1 = (1)
   \
-  cal(W)[v_0 v_1 v_2] =
-    &2 lambda_0 (dif lambda_1 wedge dif lambda_2) \
-  - &2 lambda_1 (dif lambda_0 wedge lambda_2) \
-  + &2 lambda_2 (dif lambda_0 wedge dif lambda_1) \
+  e = [v_0 v_1]
+$
+
+Barycentric Coordinate Functions
+$
+  &lambda_0 = 1 - x
+  quad quad
+  &&dif lambda_0 = -dif x
   \
-  cal(W)[v_0,v_1,v_2,v_3] =
-    &6 lambda_0 (dif lambda_1 wedge dif lambda_2 wedge dif lambda_3) \
-  - &6 lambda_1 (dif lambda_0 wedge lambda_2 wedge lambda_3) \
-  + &6 lambda_2 (dif lambda_0 wedge dif lambda_1 wedge dif lambda_3) \
-  - &6 lambda_3 (dif lambda_0 wedge dif lambda_1 wedge dif lambda_2) \
+  &lambda_1 = x
+  quad quad
+  &&dif lambda_1 = +dif x
+$
+
+$
+  cal(W)[e] = cal(W)[v_0 v_1] = dif x
+$
+
+$
+  diff_1 = mat(-1; +1)
+  \
+  dif_0 = mat(-1, +1)
+$
+
+$
+  dif_0 cal(W)[v_0] = mat(-1,+1) mat(1;0) = [-1] = -cal(W)[e] = -dif x quad checkmark
+  \
+  dif_0 cal(W)[v_1] = mat(-1,+1) mat(0;1) = [+1] = +cal(W)[e] = +dif x quad checkmark
+$
+
+== Reference 2-simplex
+
+$
+  v_0=(0,0),v_1=(1,0),v_2=(0,1)
+  \
+  e_0=[v_0 v_1],e_1=[v_0 v_2],e_2=[v_1 v_2]
+  \
+  k=[v_0 v_1 v_2]
+$
+
+Barycentric Coordinate Functions
+$
+  &lambda_0 = 1 - x_0 - x_1
+  quad quad
+  &&dif lambda_0 = -dif x_0 -dif x_1
+  \
+  &lambda_1 = x_0
+  quad quad
+  &&dif lambda_1 = +dif x_0
+  \
+  &lambda_2 = x_1
+  quad quad
+  &&dif lambda_2 = +dif x_1
 $
 
 
-Whitney forms are affine invariant. \
-Let $sigma = [x_0 dots x_n]$ and $tau = [y_0 dots y_n]$ and $phi: sigma -> tau$
-affine map, such that $phi(x_i) = y_i$, then
 $
-  cal(W)[x_0 dots x_n] = phi^* (cal(W)[y_0 dots y_n])
+  &cal(W)[e_0] = cal(W)[v_0 v_1] = (1-x_1) dif x_0 + x_0 dif x_1
+  \
+  &cal(W)[e_1] = cal(W)[v_0 v_2] = x_1 dif x_0 + (1-x_0) dif x_1
+  \
+  &cal(W)[e_2] = cal(W)[v_1 v_2] = -x_1 dif x_0 + x_0 dif x_1
+  \
+  \
+  &cal(W)[k] = cal(W)[v_0 v_1 v_2] = 2 dif x_0 wedge dif x_1
 $
+
+TODO: boundary and exterior derivative!\
+TODO: compute differential of whitney forms!
+
+= Reference 3-simplex
+
+TODO!
 
 
 #pagebreak()
@@ -588,3 +682,22 @@ Giving us the final formula
 $
   a_(i j) = (S_i S_j cos theta_(i j))/(k^2 abs(K))
 $
+
+
+#pagebreak()
+= Problems and Questions
+
+== Combinatorial/Ordering Problem
+
+The ordering keeps on giving me headaches...
+
+Starting from the cells, we create subsimplicies by doing n choose k.
+What is the right ordering for these subsimplicies?
+
+Lexicographical vs Leaving one off from first to last \
+This seems to be actually the reverse ordering of each other.\
+But this is just leaving one off.
+
+How about more?
+
+It would be best if we would always have lexicographic ordering proabably...
