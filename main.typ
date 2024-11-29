@@ -407,19 +407,20 @@ Some expansions:
   gutter: 10%,
   $
     cal(W)[v_0 v_1] =
-    &lambda_0 dif lambda_1 - lambda_1 dif lambda_0
+    &-lambda_1 dif lambda_0
+     + lambda_0 dif lambda_1 
     \
     cal(W)[v_0 v_1 v_2] =
-      &2 lambda_0 (dif lambda_1 wedge dif lambda_2) \
-    - &2 lambda_1 (dif lambda_0 wedge dif lambda_2) \
-    + &2 lambda_2 (dif lambda_0 wedge dif lambda_1) \
+    &+2 lambda_2 (dif lambda_0 wedge dif lambda_1) \
+    &-2 lambda_1 (dif lambda_0 wedge dif lambda_2) \
+    &+2 lambda_0 (dif lambda_1 wedge dif lambda_2) \
   $,
   $
     cal(W)[v_0 v_1 v_2 v_3] =
-      &6 lambda_0 (dif lambda_1 wedge dif lambda_2 wedge dif lambda_3) \
-    - &6 lambda_1 (dif lambda_0 wedge dif lambda_2 wedge dif lambda_3) \
-    + &6 lambda_2 (dif lambda_0 wedge dif lambda_1 wedge dif lambda_3) \
     - &6 lambda_3 (dif lambda_0 wedge dif lambda_1 wedge dif lambda_2) \
+    + &6 lambda_2 (dif lambda_0 wedge dif lambda_1 wedge dif lambda_3) \
+    - &6 lambda_1 (dif lambda_0 wedge dif lambda_2 wedge dif lambda_3) \
+      &6 lambda_0 (dif lambda_1 wedge dif lambda_2 wedge dif lambda_3) \
   $
 )]
 
@@ -449,9 +450,18 @@ $
 $
 
 $
-  diff_1 = mat(-1; +1)
+  diff_1 = mat(
+    ,e;
+    v_0,-1;
+    v_1,+1;
+    augment: #(hline: 1, vline: 1)
+  )
   \
-  dif_0 = mat(-1, +1)
+  dif_0 = mat(
+    ,lambda_0,lambda_1;
+    lambda_e,-1, +1;
+    augment: #(hline: 1, vline: 1)
+  )
 $
 
 $
@@ -467,7 +477,7 @@ $
   \
   e_0=[v_0 v_1],e_1=[v_0 v_2],e_2=[v_1 v_2]
   \
-  k=[v_0 v_1 v_2]
+  K=[v_0 v_1 v_2]
 $
 
 Barycentric Coordinate Functions
@@ -488,21 +498,114 @@ $
 
 $
   &cal(W)[e_0] = cal(W)[v_0 v_1] = (1-x_1) dif x_0 + x_0 dif x_1
+  quad quad
+  &&dif cal(W)[e_0] = +2 dif x_0 wedge dif x_1
   \
   &cal(W)[e_1] = cal(W)[v_0 v_2] = x_1 dif x_0 + (1-x_0) dif x_1
+  quad quad
+  &&dif cal(W)[e_1] = -2 dif x_0 wedge dif x_1
   \
   &cal(W)[e_2] = cal(W)[v_1 v_2] = -x_1 dif x_0 + x_0 dif x_1
+  quad quad
+  &&dif cal(W)[e_2] = +2 dif x_0 wedge dif x_1
   \
   \
-  &cal(W)[k] = cal(W)[v_0 v_1 v_2] = 2 dif x_0 wedge dif x_1
+  &cal(W)[K] = cal(W)[v_0 v_1 v_2] = 2 dif x_0 wedge dif x_1
 $
 
-TODO: boundary and exterior derivative!\
-TODO: compute differential of whitney forms!
+$
+  diff_2 = mat(
+    ,k;
+    e_0,+1;
+    e_1,-1;
+    e_2,+1;
+    augment: #(hline: 1, vline: 1)
+  )
+  quad quad
+  diff_1 = mat(
+    ,e_0,e_1,e_2;
+    v_0,-1,-1, 0;
+    v_1,+1, 0,-1;
+    v_2, 0,+1,+1;
+    augment: #(hline: 1, vline: 1)
+  )
+  \
+  dif_1 = mat(
+    ,lambda_e_0,lambda_e_1,lambda_e_2;
+    lambda_K,+1,-1,+1;
+    augment: #(hline: 1, vline: 1)
+  )
+  quad quad
+  dif_0 = mat(
+    ,lambda_0,lambda_1,lambda_2;
+    lambda_e_0,-1,+1, 0;
+    lambda_e_1,-1, 0,+1;
+    lambda_e_2, 0,-1,+1;
+    augment: #(hline: 1, vline: 1)
+  )
+$
 
 = Reference 3-simplex
 
-TODO!
+$
+  v_0=(0,0,0),v_1=(1,0,0),v_2=(0,1,0),v_3=(0,0,1)
+  \
+  e_0=[v_0 v_1],e_1=[v_0 v_2],e_2=[v_0 v_3],e_3=[v_1 v_2],e_4=[v_1 v_3],e_5=[v_2 v_3]
+  \
+  K_0=[v_0 v_1 v_2],K_1=[v_0 v_1 v_3],K_2=[v_0 v_2 v_3],K_3=[v_1 v_2 v_3]
+$
+
+Barycentric Coordinate Functions
+$
+  &lambda_0 = 1 - x_0 - x_1 - x_2
+  quad quad
+  &&dif lambda_0 = -dif x_0 -dif x_1 -dif x_2
+  \
+  &lambda_1 = x_0
+  quad quad
+  &&dif lambda_1 = +dif x_0
+  \
+  &lambda_2 = x_1
+  quad quad
+  &&dif lambda_2 = +dif x_1
+  \
+  &lambda_3 = x_2
+  quad quad
+  &&dif lambda_3 = +dif x_2
+$
+
+
+$
+  &cal(W)[e_0] = cal(W)[v_0 v_1] = (1-x_1-x_2) dif x_0 + x_0 dif x_1 + x_0 dif x_2
+  quad quad
+  &&dif cal(W)[e_0] =
+  \
+  &cal(W)[e_1] = cal(W)[v_0 v_2] = x_1 dif x_0 + (1-x_0-x_2) dif x_1 + x_1 dif x_2
+  quad quad
+  &&dif cal(W)[e_1] =
+  \
+  &cal(W)[e_2] = cal(W)[v_0 v_3] = x_2 dif x_0 + x_2 dif x_1 + (1-x_0-x_1) dif x_2
+  quad quad
+  &&dif cal(W)[e_2] =
+  \
+  &cal(W)[e_3] = cal(W)[v_1 v_2] = -x_1 dif x_0 + x_0 dif x_1
+  quad quad
+  &&dif cal(W)[e_3] =
+  \
+  &cal(W)[e_4] = cal(W)[v_1 v_3] = -x_2 dif x_0 + x_0 dif x_2
+  quad quad
+  &&dif cal(W)[e_4] =
+  \
+  &cal(W)[e_5] = cal(W)[v_2 v_3] = -x_2 dif x_1 + x_1 dif x_2
+  quad quad
+  &&dif cal(W)[e_5] =
+$
+
+$
+  &cal(W)[K_0] = cal(W)[v_0 v_1 v_2] = (2-2x_2) dif x_0 wedge dif x_1 + 2 x_1 dif x_0 wedge dif x_2 - 2 x_0 dif x_1 wedge dif x_2
+$
+
+ TODO
 
 
 #pagebreak()
