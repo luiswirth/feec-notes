@@ -65,9 +65,9 @@ TODO: double check
 $
   grad f &= (dif f)^sharp
   \
-  "curl" avec(F) &= hodge dif hodge avec(F)^flat
+  "curl" avec(F) &= (hodge dif avec(F)^flat)^sharp
   \
-  "div" avec(F) &= hodge dif avec(F)^flat
+  "div" avec(F) &= hodge dif hodge avec(F)^flat
 $
 
 == Main Theorems
@@ -186,11 +186,13 @@ Purely topological, no geometry.
 In discrete settings defined as coboundary operator, through Stokes' theorem.\
 So the discrete exterior derivative is just the transpose of the boundary operator / incidence matrix.
 
+The exterior derivative is closed in the space of Whitney forms, because of the de Rham complex.
+
+The local (on a single cell) exterior derivative is always the same for any cell.
+Therefore we can compute it on the reference cell.
+
 
 = Hodge Star operator
-#v(1cm)
-
-Captures geometry of problem through inner product, which depends on metric.
 
 The Hodge star operator is a linear operator
 $
@@ -198,20 +200,67 @@ $
 $
 s.t.
 $
-  alpha wedge (hodge beta) = inner(alpha, beta) vol
+  alpha wedge (hodge beta) = inner(alpha, beta)_(Lambda^k) vol
+  quad forall alpha in Lambda^k (Omega)
 $
+where $inner(alpha, beta)$ is the pointwise inner product on #strike[differential] $k$-forms
+meaning it's a scalar function on $Omega$.\
+$vol = sqrt(abs(g)) dif x^1 dots dif x^n$ is the volume form (top-level form $k=n$).
 
-Using a basis for $beta$, we get a LSE by replacing $beta$ with each basis element.
-By solving the LSE we can figure out $hodge beta$.
-For a trivial inner product (equal to one), we don't need to solve a LSE.
+Given a basis for $Lambda^k (Omega)$, we can get an LSE by replacing $alpha$ with each basis element.\
+This allows us to solve for $hodge beta$.\
+For a inner product on an orthonormal basis on euclidean space, the solution is explicit and doesn't involve solving an LSE.
 
 In general:\
 - $hodge 1 = vol$
 - $hodge vol = 1$
 
-with $vol = sqrt(abs(g)) dif x^1 dots dif x^n$
+Integrating the equation over $Omega$ we get
+$
+  integral_Omega alpha wedge (hodge beta)
+  = integral_Omega inner(alpha, beta)_(Lambda^k) vol
+  = inner(alpha, beta)_(L^2 Lambda^k)
+  quad forall alpha in Lambda^k (Omega)
+$
 
-Hodge star operator is related to mass matrix.
+This equation can be used to find the discretized weak Hodge star operator.\
+The weak variational form of our hodge star operator is the mass bilinear form
+$
+  m(u, v) = integral_Omega hodge u wedge v
+$
+After Galerkin discretization we get the mass matrix for our discretized weak Hodge star operator
+as the $L^2$-inner product on differential $k$-forms.
+$
+  amat(M)_(i j) = integral_Omega phi_j wedge hodge phi_i = inner(phi_j, phi_i)_(L^2 Lambda^k)
+$
+
+This is called the mass bilinear form / matrix, since for 0-forms, it really coincides with
+the mass matrix from Lagrangian FEM.
+
+The Hodge star operator captures geometry of problem through this inner product,
+which depends on Riemannian metric.\
+Let's see what this dependence looks like.
+
+An inner product on a vector space can be represented as a Gramian matrix given a basis.
+
+The Riemannian metric (tensor) is an inner product on the tangent vectors with
+basis $diff/(diff x^i)$.\
+The inverse metric is an inner product on covectors / 1-forms with basis $dif x^i$.\
+This can be further extended to an inner product on #strike[differential] $k$-forms
+with basis $dif x_i_1 wedge dots wedge dif x_i_k$.
+$
+  inner(dif x_I, dif x_J) = det [inner(dif x_I_i, dif x_I_j)]_(i,j)^k
+$
+Lastly we can extend this to an inner product on differential $k$-forms.\
+For (1st order) FEEC we have piecewise-linear differential $k$-forms with the
+Whitney basis $lambda_sigma$.\
+Therefore our discretized weak hodge star operator is the mass matrix, which is the Gramian matrix
+on all Whitney $k$-forms.
+
+$
+  amat(M)^k = [inner(lambda_sigma_j, lambda_sigma_i)_(L^2 Lambda^k)]_(i,j)
+$
+
 
 == DEC considerations
 
@@ -381,9 +430,9 @@ $
 $
 
 There is a isomorphism between Whitney $k$-forms and cochains.\
-Represented through the de Rham map and Whitney's one-sided inverse:\
+Represented through the de Rham map (discretization) and Whitney interpolation:\
+- The integration of each Whitney $k$-form over its associated $k$-simplex yields a $k$-cochain.
 - The interpolation of a $k$-cochain yields a Whitney $k$-form.\
-- The integration of a Whitney $k$-form over each $k$-simples yields a $k$-cochain.
 
 
 Whitney forms are affine invariant. \
@@ -450,6 +499,15 @@ $
 $
 
 $
+  hodge lambda_0 = 1-x dif x
+  \
+  hodge lambda_1 = x dif x
+  \
+  \
+  hodge lambda_(0 1) = 1
+$
+
+$
   diff_1 = mat(
     ,e;
     v_0,-1;
@@ -511,6 +569,24 @@ $
   \
   \
   &cal(W)[K] = cal(W)[v_0 v_1 v_2] = 2 dif x_0 wedge dif x_1
+$
+
+$
+  hodge lambda_0 = (1 - x - y) dif x wedge dif y
+  \
+  hodge lambda_1 = x dif x wedge dif y
+  \
+  hodge lambda_2 = y dif x wedge dif y
+  \
+  \
+  hodge lambda_(0 1) = -x dif x + (1-y) dif y
+  \
+  hodge lambda_(0 2) = (x-1) dif x + y dif y
+  \
+  hodge lambda_(1 2) = x dif x - y dif y
+  \
+  \
+  hodge lambda_(0 1 2) = 2
 $
 
 $
