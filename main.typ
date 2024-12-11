@@ -1,6 +1,14 @@
 #import "setup.typ": *
 #show: notes-template
 
+= Notation
+
+$
+  cal(I)^n_k = { I=(i_0,dots,i_(k-1)) quad : quad 0 <= i_i <= n-1 quad forall i }
+  \
+  hat(cal(I))^n_k = {I=(i_0,dots,i_(k-1)): 0 <= i_0 < i_1 < dots.c < i_(k-1) <= n-1}
+$
+
 = Domain
 
 In the most general sense, $Omega$ may be a (piecewise) smooth oriented and
@@ -34,6 +42,45 @@ by knowing the edge lenghs of the simplicial complex.
 
 Simplicial complex is extended to simplicial chain complex.
 
+= Exterior Algebra
+
+We have an vector space $V$ or a field $KK$.\
+We first define the tensor algebra
+$
+  T(V) = plus.circle.big_(k=0)^oo V^(times.circle k)
+  = K plus.circle V plus.circle (V times.circle V) plus.circle dots.c
+$
+
+Now we define the two-sides ideal $I = { x times.circle x : x in V }$.\
+The exterior algebra is now the quotient algebra of the tensor algebra by the ideal
+$
+  wedgespace(V) = T(V)\/I
+  = wedgespace^0(V) plus.circle wedgespace^1(V) plus.circle dots.c plus.circle wedgespace^n (V)
+$
+The exterior product $wedge$ of two element in $wedgespace(V)$ is then
+$
+  alpha wedge beta = alpha times.circle beta quad (mod I)
+$
+
+We have dimensionality given by the binomial coefficent.
+$
+  dim wedgespace^k (V) = binom(n,k)
+$
+
+The $k$-th exterior algebra $wedgespace^k V$ over the vector space $V$ is
+called the space of $k$-vectors.\
+The $k$-th exterior algebra $wedgespace^k (V^*)$ over the dual space $V^*$ of $V$ is
+called the space of $k$-forms.\
+
+
+We can easily switch between $k$-vectors and $k$-forms, if we identify the basis of $V$
+with the dual(!) basis of $V^*$. We just reinterpret the components.\
+This defines two unary operators.
+- Flat #flat to move from $k$-vector to $k$-form.
+- Sharp #sharp to move from $k$-form to $k$-vector.
+This is inspired by musical notation. It moves the tensor index down (#flat) and up (#sharp).
+
+
 = Differential Form
 
 - $k$-dimensional ruler $omega in Lambda^k (Omega)$
@@ -53,21 +100,48 @@ $
   dif t_1 dots dif t_k
 $
 
-#pagebreak()
-= Vector Calculus
+An arbitrary differential form can be written as (with Einstein sum convention)
+$
+  alpha = 1/k!
+  alpha_(i_1 dots i_k) dif x^(i_1) wedge dots.c wedge dif x^(i_k)
+  = sum_(i_1 < dots < i_k) 
+  alpha_(i_1 dots i_k) dif x^(i_1) wedge dots.c wedge dif x^(i_k)
+$
 
-We can define proxies to convert between vector fields and differential 1-forms.
-- Sharp #sharp to move from differential 1-form to vector field.
-- Flat #flat to move from vector field to differential 1-form.
+#pagebreak()
+= Exterior Calculus in 3D (vs Vector Calculus)
+
+You can think of $k$-vector field as a *density* of infinitesimal oriented $k$-dimensional.
+
+The differential $k$-form is just a $k$-form field, which is the dual measuring object.
 
 == Derivatives
-TODO: double check
+
+
+- $dif_0$: Measures how much a 0-form (scalar field) changes linearly,
+  producing a 1-form (line field).
+- $dif_1$: Measures how much a 1-form (line field) circulates areally,
+  producing a 2-form (areal field).
+- $dif_2$: Measures how much a 2-form (areal flux field) diverges volumetrically,
+  producing a 3-form (volume field).
+  
 $
-  grad f &= (dif f)^sharp
+  grad &=^~ dif_0
+  quad quad
+  &&grad f = (dif f)^sharp
   \
-  "curl" avec(F) &= (hodge dif avec(F)^flat)^sharp
+  curl &=^~ dif_1
+  quad quad
+  &&curl avec(F) = (hodge dif avec(F)^flat)^sharp
   \
-  "div" avec(F) &= hodge dif hodge avec(F)^flat
+  div &=^~ dif_2
+  quad quad
+  &&"div" avec(F) = hodge dif hodge avec(F)^flat
+$
+
+Laplacian
+$
+  Delta f = div grad f = hodge dif hodge dif f
 $
 
 == Main Theorems
@@ -105,6 +179,17 @@ $
   &Hvec (div ; Omega) &&=^~ H Lambda^2 (Omega) \
 $
 
+
+$
+  0 -> H (grad; Omega) limits(->)^grad Hvec (curl; Omega) limits(->)^curl Hvec (div; Omega) limits(->)^div L^2(Omega) -> 0
+  \
+  curl compose grad = 0
+  quad quad
+  div compose curl = 0
+$
+
+== FE Spaces
+
 #grid(
   columns: (40%, 60%),
   align: horizon,
@@ -126,15 +211,6 @@ $
   cal(W) Lambda^2 (mesh) &=^~ bold(cal(R T)) (mesh) \
 $
 
-
-== de Rham Complex in 3D
-$
-  0 -> H (grad; Omega) limits(->)^grad Hvec (curl; Omega) limits(->)^curl Hvec (div; Omega) limits(->)^div L^2(Omega) -> 0
-  \
-  curl compose grad = 0
-  quad quad
-  div compose curl = 0
-$
 
 $
   0 -> cal(S)^0_1 (mesh) limits(->)^grad bold(cal(N)) (mesh) limits(->)^curl bold(cal(R T)) (mesh) limits(->)^div cal(S)^(-1)_0 (mesh) -> 0
@@ -258,7 +334,48 @@ Therefore our discretized weak hodge star operator is the mass matrix, which is 
 on all Whitney $k$-forms.
 
 $
-  amat(M)^k = [inner(lambda_sigma_j, lambda_sigma_i)_(L^2 Lambda^k)]_(i,j)
+  amat(M)^k = [inner(lambda_sigma_j, lambda_sigma_i)_(L^2 Lambda^k)]_(0 <= i,j < binom(n,k))
+  = [inner(lambda_I, lambda_J)_(L^2 Lambda^k)]_(I,J in hat(cal(I))^n_k)
+$
+
+$
+  inner(lambda_(i_0 dots i_k), lambda_(j_0 dots j_k))
+  = (k!)^2 sum_(l=0)^k sum_(m=0)^k (-1)^(l+m) 
+  inner(
+    lambda_i_l space dif lambda_i_0 wedge dots.c wedge hat(dif lambda_i_l) wedge dots wedge dif lambda_i_k,
+    lambda_j_m space dif lambda_j_0 wedge dots.c wedge hat(dif lambda_j_m) wedge dots wedge dif lambda_j_k,
+  )
+$
+
+== Computation of Hodge Star in Tensor Index Notation
+
+Attention Einstein sum convention ahead!
+
+This is the formula for the hodge star of basis k-forms.
+$
+  hodge (dif x^(i_1) wedge dots.c wedge dif x^(i_k))
+  = sqrt(abs(det[g_(a b)])) / (n-k)! g^(i_1 j_1) dots.c g^(i_k j_k)
+  epsilon_(j_1 dots j_n) dif x^(j_(k+1)) wedge dots.c wedge dif x^(j_n)
+$
+
+Here with restricted to increasing indices $j_(k+1) < dots < j_n$
+$
+  hodge (dif x^(i_1) wedge dots.c wedge dif x^(i_k))
+  = sqrt(abs(det[g_(a b)])) sum_(j_(k+1) < dots < j_n)
+  g^(i_1 j_1) dots.c g^(i_k j_k)
+  epsilon_(j_1 dots j_n) dif x^(j_(k+1)) wedge dots.c wedge dif x^(j_n)
+$
+
+For an arbitrary differential k-form $alpha$, we have
+$
+  hodge alpha = sum_(j_(k+1) < dots < j_n)
+  (hodge alpha)_(j_(k+1) dots j_n) dif x^(j_(k+1)) wedge dots.c wedge dif x^(j_n)
+$
+
+$
+  (hodge alpha)_(j_(k+1) dots j_n)
+  = sqrt(det[g_(a b)]) / k!
+  alpha_(i_1 dots i_k) g^(i_1 j_1) dots.c g^(i_k j_k) epsilon_(j_1 dots j_n)
 $
 
 
@@ -282,7 +399,7 @@ $
   =
   integral_Omega inner(omega_x, eta_x) "vol"
   =
-  integral omega wedge star eta
+  integral omega wedge hodge eta
 $
 
 
@@ -291,7 +408,7 @@ $
 Coderivative operator $delta: Lambda^k (Omega) -> Lambda^(k-1) (Omega)$
 defined such that
 $
-  star delta omega = (-1)^k dif star omega
+  hodge delta omega = (-1)^k dif hodge omega
   \
   delta_k := (dif_(k-1))^* = (-1)^k space (hodge_(k-1))^(-1) compose dif_(n-k) compose hodge_k
 $
@@ -445,9 +562,9 @@ $
 The Whitney basis ${lambda_sigma}$ is constructed from barycentric coordinate functions ${lambda_i}$.
 
 $
-  cal(W)[v_i] = lambda_i
-  \
-  cal(W)[v_0,dots,v_k] = k! sum_(i=0)^k (-1)^i lambda_i (dif lambda_0 wedge dots.c wedge hat(dif lambda_i) wedge dots.c lambda_k)
+  lambda_(i_0 dots i_k) =
+  k! sum_(l=0)^k (-1)^l lambda_i_l
+  (dif lambda_i_0 wedge dots.c wedge hat(dif lambda_i_l) wedge dots.c wedge dif lambda_i_k)
 $
 
 Some expansions:
@@ -654,27 +771,27 @@ $
 $
   &cal(W)[e_0] = cal(W)[v_0 v_1] = (1-x_1-x_2) dif x_0 + x_0 dif x_1 + x_0 dif x_2
   quad quad
-  &&dif cal(W)[e_0] =
+  &&dif cal(W)[e_0] = +2 dif x_0 wedge dif x_1 + 2 dif x_0 wedge dif x_2
   \
   &cal(W)[e_1] = cal(W)[v_0 v_2] = x_1 dif x_0 + (1-x_0-x_2) dif x_1 + x_1 dif x_2
   quad quad
-  &&dif cal(W)[e_1] =
+  &&dif cal(W)[e_1] = -2 dif x_0 wedge dif x_1 + 2 dif x_1 wedge dif x_2
   \
   &cal(W)[e_2] = cal(W)[v_0 v_3] = x_2 dif x_0 + x_2 dif x_1 + (1-x_0-x_1) dif x_2
   quad quad
-  &&dif cal(W)[e_2] =
+  &&dif cal(W)[e_2] = -2 dif x_0 wedge dif x_2 - 2 dif x_1 wedge dif x_2
   \
   &cal(W)[e_3] = cal(W)[v_1 v_2] = -x_1 dif x_0 + x_0 dif x_1
   quad quad
-  &&dif cal(W)[e_3] =
+  &&dif cal(W)[e_3] = 2 dif x_0 wedge dif x_1
   \
   &cal(W)[e_4] = cal(W)[v_1 v_3] = -x_2 dif x_0 + x_0 dif x_2
   quad quad
-  &&dif cal(W)[e_4] =
+  &&dif cal(W)[e_4] = 2 dif x_0 wedge dif x_2
   \
   &cal(W)[e_5] = cal(W)[v_2 v_3] = -x_2 dif x_1 + x_1 dif x_2
   quad quad
-  &&dif cal(W)[e_5] =
+  &&dif cal(W)[e_5] = 2 dif x_1 wedge dif x_2
 $
 
 $
@@ -682,6 +799,58 @@ $
 $
 
  TODO
+
+#pagebreak()
+== Exterior Derivative of Whitney Forms on Reference Cell
+
+The exterior derivative of a Whitney form:
+$
+  dif lambda_(i_0 dots i_k)
+  &= k! sum_(l=0)^k (-1)^l dif lambda_i_l wedge
+  (dif lambda_i_0 wedge dots.c wedge hat(dif lambda_i_l) wedge dots.c wedge dif lambda_i_k)
+  \
+  &= k! sum_(l=0)^k (-1)^l (-1)^l
+  (dif lambda_i_0 wedge dots.c wedge dif lambda_i_l wedge dots.c wedge dif lambda_i_k)
+  \
+  &= (k+1)! dif lambda_i_0 wedge dots.c wedge dif lambda_i_k
+$
+
+For a reference cell we have
+$
+  dif lambda_i = cases(
+    -sum_(j=0)^(n-1) dif x^j
+    &quad "if" i = 0,
+    dif x^(i-1)
+    &quad "otherwise"
+  )
+$
+
+Therefore for $i_0 != 0$ we have
+$
+  dif lambda_(i_0 dots i_k)
+  &= (k + 1)! dif x^(i_0-1) wedge dots.c wedge dif x^(i_k-1)
+$
+
+And for $i_0 = 0$ we have
+// TODO: improve derivation
+$
+  dif lambda_(0 i_1 dots i_k)
+  &= (k+1)! dif lambda_0 wedge dif lambda_i_1 wedge dots.c wedge dif lambda_i_k
+  \
+  &= (k+1)! (-sum_(j=0)^(n-1) dif x^j) wedge dif x^(i_1-1) wedge dots.c wedge dif x^(i_k-1)
+  \
+  &= -(k+1)! sum_(j=0)^(n-1) dif x^j wedge dif x^(i_1-1) wedge dots.c wedge dif x^(i_k-1)
+
+$
+
+
+$
+  L^k = [inner(dif lambda_tau, dif lambda_sigma)_(L^2 Lambda^(k+1) (K))]_(sigma,tau in Delta_k (K))
+$
+
+$
+  L^0 = [inner(dif lambda_j, dif lambda_i)_(L^2 Lambda^1 (K))]_(i,j in Delta_0 (K))
+$
 
 
 #pagebreak()
@@ -716,7 +885,7 @@ $
 
 Or in integral form
 $
-  integral_Omega ((dif delta + delta dif) u) wedge star v = integral_Omega f wedge star v
+  integral_Omega ((dif delta + delta dif) u) wedge hodge v = integral_Omega f wedge hodge v
 $
 
 == Integration by Parts
@@ -731,7 +900,7 @@ $
 $
 
 $
-  inner(dif omega, eta) = inner(omega, delta eta) + integral_(diff Omega) "Tr" omega wedge "Tr" star eta
+  inner(dif omega, eta) = inner(omega, delta eta) + integral_(diff Omega) "Tr" omega wedge "Tr" hodge eta
 $
 
 If $omega$ or $eta$ vanishes on the boundary, then
@@ -763,7 +932,7 @@ $
 
 $
   u in H Lambda^k (Omega): quad
-  integral_Omega (delta u) wedge star (delta v) + integral_Omega (dif u) wedge star (dif v) = integral_Omega f wedge star v
+  integral_Omega (delta u) wedge hodge (delta v) + integral_Omega (dif u) wedge hodge (dif v) = integral_Omega f wedge hodge v
   quad
   forall v in H Lambda^k (Omega)
 $
@@ -780,9 +949,9 @@ $
   quad quad forall v in H Lambda^k (Omega)
   \
   vvec(mu) in RR^N: quad
-  sum_(i=1)^N mu_i (integral_Omega (delta phi_i) wedge star (delta phi_j) + integral_Omega (dif phi_i) wedge star (dif phi_j))
+  sum_(i=1)^N mu_i (integral_Omega (delta phi_i) wedge hodge (delta phi_j) + integral_Omega (dif phi_i) wedge hodge (dif phi_j))
   =
-  sum_(i=1)^N mu_i integral_Omega f wedge star phi_j
+  sum_(i=1)^N mu_i integral_Omega f wedge hodge phi_j
   quad forall j in {1,dots,N}
 $
 
@@ -790,11 +959,11 @@ $
   amat(A) vvec(mu) = 0
   \
   A =
-  [integral_Omega (delta phi_i) wedge star (delta phi_j)]_(i,j=1)^N
+  [integral_Omega (delta phi_i) wedge hodge (delta phi_j)]_(i,j=1)^N
   +
-  [integral_Omega (dif phi_i) wedge star (dif phi_j)]_(i,j=1)^N
+  [integral_Omega (dif phi_i) wedge hodge (dif phi_j)]_(i,j=1)^N
   \
-  vvec(phi) = [integral_Omega f wedge star phi_j]_(j=1)^N
+  vvec(phi) = [integral_Omega f wedge hodge phi_j]_(j=1)^N
 $
 
 
@@ -807,7 +976,7 @@ Relativistic Electrodynamics
 - Current 3-form $J = rho + J wedge dif t$
 $
   dif F = 0 \
-  dif (star F) = J
+  dif (hodge F) = J
 $
 
 

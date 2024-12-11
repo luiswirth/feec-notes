@@ -45,19 +45,24 @@
 
 #let mesh = $cal(M)$
 
+
 #let wedge = math.and
+#let wedgespace = math.scripts(math.inline(wedge.big))
 #let hodge = math.class("unary", math.star)
 #let sharp = "♯"
 #let flat = "♭"
 
-#let dom = "dom"
-
-#let Hvec = $avec(H)$
-#let H0 = $limits(H)^circle.stroked.small$
+#let dif = math.class("unary", math.upright($d$))
 
 #let grad = $avec("grad")$
 #let curl = $avec("curl")$
 #let div = $"div"$
+
+
+#let Hvec = $avec(H)$
+#let H0 = $limits(H)^circle.stroked.small$
+
+
 
 #let restr(a) = $lr(#a|)$
 #let trace = $"Tr"$
@@ -67,3 +72,4 @@
 
 #let vol = "vol"
 
+#let dom = "dom"
