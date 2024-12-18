@@ -38,6 +38,158 @@ It's the central object in the study of *Regge Calculus*.
 Here the Riemannian metric is called the *Regge metric* and is fully specified
 by knowing the edge lenghs of the simplicial complex.
 
+= Mesh and Meshing
+
+This might be an important theoretical result for the thesis:
+https://en.wikipedia.org/wiki/Simplicial_approximation_theorem
+
+Barycentric subdivisions is the way to go for refining a simplicial complex.
+
+There is a notion of dual mesh, that is relevant (at least) in DEC.
+If we have a simplicial mesh, then the dual mesh is in general not a simplicial mesh.
+
+In Wikipedia this topic is only covered as a dual graph https://en.wikipedia.org/wiki/Dual_graph.
+
+Delaunay traingulations and Voronoi diagrams are dual. Which means constructing a
+Voronoi diagram and a delaunay triangulation is equivalent.
+This is helpful for FEM mesh generation.
+
+Lloyd's algorithm, a method based on Voronoi diagrams for moving
+a set of points on a surface to more evenly spaced positions, is commonly
+used as a way to smooth a finite element mesh described by the dual Delaunay
+triangulation. This method improves the mesh by making its triangles more
+uniformly sized and shaped.
+
+= Numerical Analysis Theory
+
+Fundamental Theorem:
+Constistency and Stability => Convergence.
+
+In FEM consistency error, is difference between discretized solution
+and exact solution. Includes best approximation error and variational crimes
+(changes to bilinear form).
+
+Stability means that the mapping from data to solution must be bounded.
+
+The map from data to solution, is the inverse of the differential operator.
+So in other words, this operator must be invertible with an inverse that doesn't
+have too big of a norm.
+
+= Mixed Finite Elements
+
+Let's consider a poisson equation.
+$
+  -Delta u = f 
+$
+
+In standard weak form
+$
+  integral grad dot grad v = integral f v
+  quad forall v in H^1
+$
+
+Instead we can consider mixed strong formulation:
+$
+  -div grad u = f
+  <==> cases(
+    sigma = -grad u,
+    div sigma = f,
+  )
+$
+
+If we transition this to weak:
+$
+  sigma in H(div), u in L^2
+  \
+  integral sigma dot tau - integral u div tau = 0
+  quad forall tau in H(div)
+  \
+  integral div sigma v = integral f v
+  quad forall v in L^2
+$
+
+For 1D:
+$
+
+  integral sigma tau - integral u tau' = 0
+  quad forall tau in H^1
+  \
+  integral sigma' v = integral f v
+  quad forall v in L^2
+$
+
+If we do galerkin discretization with
+$P_1 times P_1$ we get a singular system. Failure.
+
+If we take $P_1 times P_0$ success (not in 2D!)
+
+For $P_2 times P_0$ failure by oscillations.
+
+Seldom stable.
+
+== Vector Laplacian
+
+Vector laplacian is just scalar laplacian on each component.
+It can also expressed as
+
+$
+  curl curl u - grad div u = f
+  \
+  u dot n = 0 quad curl u times n = 0
+$
+The conditions $curl u times n = 0$ is actually two equations.
+
+In the weak form
+$
+  integral (curl u dot curl v + div u div v) = integral f dot v
+  quad forall v
+$
+
+On a L-shaped domain with a reentrant corner:
+Lagrange FE converges, but to the wrong solution!
+
+We have positive definite bilinear form, giving us stability.
+But here we have a consistency problem. The consistency error
+doesn't go to zero as we refine, because of the strong singularity in $u$.
+
+This doesn't work for any conforming FE!
+
+== Vector Laplacian with non trivial topology
+
+Normally when solving a vector poisson problem with
+zero boundary condition and zero right hand side, then
+we should get a solution that is also zero.
+
+But!  If there is hole in the domain, like in an annulus,
+then this isn't true. The kernel of the vector laplacian is non-trivial!
+The dimension of the kernel of the laplacian (space of harmonic forms) is
+actually the number of holes (1st betty number).
+For this reason the PDE problem isn't even well-posed.
+We need to mod out (modulo) the harmonic forms out of $f$
+and require that the solution $u$ is orthogonal to all harmonic forms (side condition).
+
+== Maxwell eigenvalue problem
+
+$
+  curl curl = lambda u \
+  div u = 0
+$
+
+In weak form
+$
+  u in H(curl) quad
+  integral curl u dot curl v = lambda integral u dot v
+  quad forall v in H(curl)
+$
+
+
+= Discrete calculus
+
+Discrete Calculus is the kind of calculus one needs for finite difference schemes
+and for DEC.
+
+https://en.wikipedia.org/wiki/Discrete_calculus
+
 = Simplicial Homology
 
 Simplicial complex is extended to simplicial chain complex.
@@ -79,6 +231,28 @@ This defines two unary operators.
 - Flat #flat to move from $k$-vector to $k$-form.
 - Sharp #sharp to move from $k$-form to $k$-vector.
 This is inspired by musical notation. It moves the tensor index down (#flat) and up (#sharp).
+
+= Differential Geometry
+
+If we have an immersion (maybe also embedding) $f: M -> RR^n$,
+then it's differential $dif f: T_p M -> T_p RR^n$, is called the push-forward
+and tells us how our intrinsic tangential vectors are being stretched when viewed geometrically.
+
+Computationally this differential $dif f$ can be represented, since it is a linear map, by
+a Jacobi Matrix $J$.
+
+The differential tells us also how to take an inner product of our tangent
+vectors, by inducing a metric
+$
+  g(u, v) = dif f(u) dot dif f(v)
+$
+
+Computationally this metric is represented, since it's a bilinear form, by a
+metric tensor $G$.\
+The above relationship then becomes
+$
+  G = J^transp J
+$
 
 
 = Differential Form
@@ -245,6 +419,14 @@ $
   dif (alpha wedge beta) = dif alpha wedge beta + (-1)^abs(alpha) alpha wedge dif beta
 $
 
+Using the Leibniz Rule we can derive what the exterior derivative of a 1-form
+term $alpha_j dif x^j$ must be, if we interpret this term as a wedge $alpha_j
+wedge dif x^j$ between a 0-form $alpha_j$ and a 1-form $dif x^j$.
+$
+  dif (alpha)j wedge dif x^j) = (dif alpha_j) wedge dif x^j + alpha_j wedge (dif dif x^j)
+  = (diff alpha_j)/(diff x^i) dif x^i wedge dif x^j
+$
+
 == Integration by parts
 $
   integral_Omega dif omega wedge eta
@@ -263,6 +445,8 @@ In discrete settings defined as coboundary operator, through Stokes' theorem.\
 So the discrete exterior derivative is just the transpose of the boundary operator / incidence matrix.
 
 The exterior derivative is closed in the space of Whitney forms, because of the de Rham complex.
+
+George de Rham isch Schwizer!!!
 
 The local (on a single cell) exterior derivative is always the same for any cell.
 Therefore we can compute it on the reference cell.
@@ -380,6 +564,26 @@ $
 
 
 == DEC considerations
+
+In DEC the discrete Hodge-star $hat(hodge)$ is defined using a dual mesh.
+In DEC we integrate the continuous $k$-forms over the $k$-simplicies of the mesh,
+to obtain a $k$-cochain, a function assigning a number to each $k$-simplex in the mesh.
+
+When doing this discretization, we only integrate along $k$ dimensions and
+only capture this information. The remaining $n-k$ dimensions are ignored.
+But the Hodge dual of a $k$-form lives in exactly this $n-k$ dual space!
+So for the discretization we need next to the primal mesh, also a dual mesh,
+consisting of dual cells (not necessarily simplicies).
+
+The diagonal discrete hodge star is then defined as
+$
+  hat(hodge) hat(alpha)_j = vol(sigma^star_j) / vol(sigma_j) hat(alpha)_j
+$
+This reminds me a lot of the lumped mass matrix, obtained when approximating
+the mass bilinear form ($L^2$-inner product) using the trapezoidal quadrature rule on 0-forms.
+This could really be the case, since the weak form of the hodge star operator is really
+the generalized mass bilinear form ($L^2 Lambda^k$-inner product) \
+I should check if the this diagonal hodge star is a true generalization of the lumped mass matrix.
 
 DEC	can	be obtained	from the lowest	order	FEEC by	replacing
 the mass matrices	by ones	that are computed	from primal-dual meshes.
@@ -966,8 +1170,61 @@ $
   vvec(phi) = [integral_Omega f wedge hodge phi_j]_(j=1)^N
 $
 
-
 #pagebreak()
+= The Laplacian
+
+We define the Laplacian here as the negative of the usual laplacian!
+
+The weak Laplacian is a an operator $Delta: H^2(Omega) -> L^2(Omega)$.
+
+It is is self-adjoint
+$
+  inner(Delta u, v) = inner(u, Delta v)
+$
+
+It is positive-semidefinite!
+$
+  inner(Delta phi, phi) >= 0
+$
+
+
+The Poisson Problem is
+$
+  Delta phi = rho
+$
+
+FEM and DEC give rise to the same cotan formula in 2D.
+
+The Laplace-Beltrami opertor is the ordinary Laplace operator in Differential
+Geometry on curved surfaces.
+
+A twice-differentiable function $phi: Omega -> RR$ is called harmonic if it is
+in the kernel of the Laplacian, i.e, $Delta phi = 0$.
+
+The only harmonic function on a compact connected domain without boundary are
+the constant functions. This follows from the strong maximum principle.
+
+This implies we can add a constant to any solution of a Poisson equation and it
+will still be a solution. This follows from Gradinaru's "Fundamental Theorem of Linear Algebra".
+Since the Laplacian is self-adjoint, it's image is the orthogonal complement of its kernel,
+which consists of constant functions. Therefore $inner(Delta phi, c) = 0$, and therefore
+$c in.not im(Delta)$.
+
+On a compact domain without boundary, constant functions are not in the image of the Laplacian,
+i.e., there is no function $phi$ such that $Delta phi = c$.
+
+Therefore if $rho$ has a constant component then our Poisson problem is not well-posed.\
+Sometimes a solution is to solve a modified problem where we removed the constant component.
+$Delta phi = rho - macron(rho)$ with $macron(rho) = 1/vol(Omega) integral_Omega rho vol$.
+
+We have Green's first identity
+$
+  inner(Delta f, g) = -inner(grad f, grad g) + inner(hat(n) dot grad f, g)_(diff)
+$
+
+
+
+
 = Maxwell's Equations
 
 Relativistic Electrodynamics
@@ -1033,19 +1290,258 @@ $
 
 
 #pagebreak()
-= Problems and Questions
+= Geometry Processing
 
-== Combinatorial/Ordering Problem
+== The smoothest function
 
-The ordering keeps on giving me headaches...
+The solution of the Laplace Equation is the most smooth function there is. Why?
+Well the solution of the Laplace equation, minimizes the Dirichlet energy
+$
+  J(u) = 1/2 integral_Omega norm(grad u)^2 vol
+$
+Meaning it's the function for which the gradiant changes the least! The smoothest in a sense.\
+The Laplacian is the derivative of it
+$
+  Dif J(u) = Delta u
+  quad quad
+  Dif J(u)[v] = Delta u v
+$
 
-Starting from the cells, we create subsimplicies by doing n choose k.
-What is the right ordering for these subsimplicies?
+== Smoothing manifolds and Implicit mean curvature flow
 
-Lexicographical vs Leaving one off from first to last \
-This seems to be actually the reverse ordering of each other.\
-But this is just leaving one off.
+If we have a parametrization $phi: M -> RR^d$, then the Dirichlet energy is manifold volume.
+E.g. For a curve in $RR^2$ it is arc length.
+So if we minimize this, we will obtain the a smoothed out manifold. A minimal surface!!!
+$
+  J(phi) = integral_Omega norm(phi_1)^2 + dots.c + norm(phi_d)^2 vol_d
+$
 
-How about more?
+If we apply the heat equation instead, we will slowly converge to the minimal surface
+and can view how it smooths out! Mean curvature flow!!!
 
-It would be best if we would always have lexicographic ordering proabably...
+#pagebreak()
+= D. Arnold Lecture
+
+== Homology
+
+Chains $V_k$ \
+Cycles $frak(Z) = cal(N) (V_k)$ \
+Boundaries $frak(B) = cal(R) (V_k)$ \
+Cohomology $frak(H) = frak(Z)\/frak(B)$
+
+Cycles modulo Boundaries is Cohomology.
+So the cycles that are not boundaries of something.
+These are holes.
+
+If we have a chain complex, by dualizing it we can obtain a cochain complex.
+It contains the same information and is isomorphic.
+An example of this is the simplicial chain complex and it's dual the simplicial
+cochain complex. So the linear forms on simplicies.
+
+The de Rham map is a isomorphism on cohomology between
+the de Rham complex (differential structure) and the simplicial cochain complex
+which is once again isomorphic to the simplicial chain complex (topological structure).
+
+This gives us a way of measuring holes of a domain using differentials/PDEs.
+
+A great example is the annulus domain. Here we can consider the funciton
+If we work with polar coodinates, then $grad theta$ is a well defined function,
+it's single valued everywhere. But there is no $C^oo$ function $theta$ since
+it's either multivalued of discontinuous when going around the annulus.
+But it has zero curl, since $curl grad theta = 0$. Meaning it's a cycle,
+but not a boundary. It's a cohomolgy element. It's a hole!
+This span of this function is the whole cohomology space. Therefore it has
+dimension one and this tells us there is just one hole.
+
+== Unbounded Operators on Hilbert spaces
+
+Always a combination of a operator together with the space it's defined on
+(important!). The space it's defined on differs from it's domain.
+
+Graph and Graph norm.
+
+A closed operator is a weaker form a bounded operator, that shares a lot
+of it's properties. A operator is closed if it is topologically closed in it's graph norm.
+
+== Hilbert Complexes (de Rham)
+
+The adjoint of the differential operators, are the counterparts
+in the integration by parts formulas.
+
+An adjoint on a domain without boundary conditions, lives on a dual space
+with boudary condtions and vice versa.
+
+The harmonic forms are designated representatives of the cohomology space.
+So instead of working with quotient spaces, we can just work with harmonic forms.
+
+Harmonic forms are defined as
+$
+  frak(h)^k = { u in V^k sect V_k^star : dif u = 0, dif^star u = 0 }
+$
+
+The abstract Hodge Laplacian is defined on any Hilbert complex.
+If it is the de Rham complex, then it is the normal Hodge Laplacian.
+
+The hilbert complex is:
+$
+  W^(k-1) arrows.rl^dif_(dif^star) W^k arrows.rl^dif_(dif^star) W^(k+1)
+$
+
+The abstract hodge laplacian is defined as
+$
+  L := dif^star dif + dif dif^star
+$
+
+It's domain is
+$
+  D(L^k) = { u in V^k sect V_k^star : dif u in V_(k+1)^star, d^star u in V^(k-1) }
+$
+
+The null space of the laplacian are really the harmonic forms (name justified)!
+$
+  cal(N)(L^k) = frak(h)^k, quad frak(h)^k perp cal(R)(L^k)
+$
+
+In 3D we have:
+$
+  0 -> H^1 ->^grad H(curl) ->^curl H(div) ->^div L^2 -> 0
+  \
+  0 <- L^2 <-^(-div) H0(div) <-^curl H0(curl) <-^(-grad) H0^1 <- 0
+$
+With the following hodge laplace problems
+#table(
+  columns: 6,
+  align: center,
+  //stroke: (x, y) => if y == 0 {(bottom: fgcolor)},
+  stroke: fgcolor,
+  table.header($k$, $L_k = dif^star dif + dif dif^star$, $tilde(L)_k = inner(dif, dif) + inner(dif^star, dif^star)$, [essential BC], [natural BC], $V^(k-1) times V^k$),
+  $0$, $-div grad$, $inner(grad, grad)$, [], $diff u\/diff n$, $H^1$,
+  $1$, $curl curl - grad div$, $inner(curl, curl) + inner(div, div)$, $u dot n$, $curl u times n$, $H^1 times H(curl)$,
+  $2$, $-grad div + curl curl$, $inner(div, div) + inner(curl, curl)$, $u times n$, $div u$, $H(curl) times H(div)$,
+  $3$, $-div grad$, $inner(grad, grad)$, $u$, [], $H(div) times L^2$,
+)
+The problems are the same mirrored about the horizontal just with different
+boudnary conditions. \
+The first and last problems are scalar Laplacians with Neumann and Dirichlet b.c. respectively. \
+The second and third problem are vector Laplacians with ? and ? b.c. respectively (magnetic and ?). \
+
+If we are at either end of the complex, we only get one of either term,
+because the other is zero.
+
+
+The Hodge-Laplace problem is\
+Given $f in W$, find $u in D(L)$ s.t.
+$
+  L u = f, quad u perp cal(h)
+$
+The side conditions is important, because the harmonic forms $cal(h)$ are
+the null space of the laplacian $L$, and if the null space is non trivial,
+then the laplacian operator is not regular, meaning it doesn't have
+unique solutions. So it's not well posed. So it's necessary to restrict our problem
+further to get uniqueness. The orthogonality to the kernel is necessary.
+
+For a standard scalar homogenuous neumann laplace problem this conditions is the vanishing mean condition
+$integral u = 0$. This is cool :D
+
+But the problem is still not well-posed.
+If we take the inner product of the range of $L$ with a harmonic form $p in frak(h)$,
+we get $(L u, p) = (dif^star u, dif^star p) + (dif u, dif p) = 0$, meaning
+$p perp cal(R)(L)$. This is acutally not suprising, since $L$ is self-adjoint
+and then the range is orthogonal to the kernel.
+
+For this reason our problem is not well posed, because we can't find $u$ for any $f$.
+Since the harmonic forms are for instance not in the image of $L$!
+So we need to get the unharmonic part of $f$. Only then it works!
+We split $W = frak(h) perp.circle frak(f)^perp$ and $f = P_frak(h) f + (f - P_frak(h) f)$
+So instead we modify such that
+$
+  L u &= f - P_frak(h) f \
+  &= f quad (mod frak(h))
+$
+
+For a standard scalar neumann problem this is actually
+$-Delta u = f - macron(f)$, where $macron(f)$ is the averager of $f$.
+It's a projection into constants.
+
+Our well-posed strong formulation is\
+Given $f in W$, find $u in D(L)$ s.t.
+$
+  L u = f - P_frak(h) f quad u perp cal(h)
+$
+
+The primal weak formulation is\
+Find $u in V sect V^star sect frak(h)^perp$, s.t.
+$
+  inner(dif u, dif v) + inner(dif^star u , dif^star v) = inner(f, v)
+  quad forall v in V sect V^star sect frak(h)^perp
+$
+This is a weaker form, since only $u$ needs to be in the domain of $dif$ and $dif^star$,
+but these images don't need to be in the domain of the other operator (as it's
+the case for the strong laplacian).
+The projection of $f$ is already taken care of, by the restriction of
+test function to harmonic forms.
+
+For our standard Neumann problem, we just get\
+Find $u in H^1 sect RR^perp$ s.t.
+$
+  inner(grad u, grad v) = inner(f, v)
+  quad forall v in H^1 sect RR^perp
+$
+So we ignore the constant part of each function.
+Make the mean vanish!
+
+For the mixed weak formulation we introduce
+new variables $sigma = dif^star u$ and $p = P_frak(h) f$\
+Find $(sigma, u, p) in (V^(k-1) times V^k times frak(h)^k)$ s.t.
+$
+  inner(sigma, tau) - inner(u, dif tau) = 0
+  quad forall tau in V^(k-1)  
+  \
+  inner(dif sigma, v) + inner(dif u, dif v) + inner(p, v) = inner(f, v)
+  quad forall v in V^k
+  \
+  inner(u, q) = 0
+  quad forall q in frak(h)^k
+$
+
+The first equation is just the definition of the variable $sigma = d^star u$.\
+The second equation says $dif sigma + dif^star dif u = f - p$ and inserting $sigma$ we get
+$dif dif^star u + dif^star dif u = f - p$.
+
+Suprising result! All three formulations are EQUIVALENT!!!
+And all of them are well posed: There exists a unique solution.
+
+Two key properties of all closed Hilbert complexes:
+- Hodge Decomposition
+- Poincaré inequality
+
+There exists a _Hodge decomposition_.
+
+We have the following split for each hilbert space
+$
+  W = frak(Z) perp.circle frak(Z)^perp
+$
+furthermore we have the following split for cycles.
+$
+  frak(Z) = frak(B) perp.circle frak(h)
+$
+
+Giving us the hodge decomposition
+$
+  W = frak(B) perp.circle frak(h) perp.circle frak(Z)^perp
+$
+or
+$
+  W = frak(B) perp.circle frak(h) perp.circle frak(B)^star
+$
+
+And for the domain of the complex operators we get
+$
+  V = frak(B) perp.circle frak(h) perp.circle frak(Z)^(perp V)
+$
+
+Theorem (Poincaré inequality):
+$
+  norm(v)_V <= c_p norm(dif v)
+  quad forall v in frak(Z)^(perp V)
+$
