@@ -31,7 +31,11 @@
 #let xv = $avec(x)$
 #let ii = $dotless.i$
 
-#let inner(a, b) = $lr(angle.l #a, #b angle.r)$
+
+#let angled(a) = math.lr($angle.l #a angle.r$)
+
+#let inner(a, b) = angled($#a, #b$)
+#let innerlines(a, b) = angled(math.vec(delim: none, a, b))
 
 #let conj(u) = math.overline(u)
 #let transp = math.tack.b

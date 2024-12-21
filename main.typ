@@ -1322,6 +1322,35 @@ $
 $
 
 #pagebreak()
+
+= Mass Bilinear form
+
+$
+  M = [inner(lambda_tau, lambda_sigma)_(L^2 Lambda^k (K))]_(sigma,tau in Delta_k (K))
+$
+
+$
+  inner(lambda_(i_0 dots i_k), lambda_(j_0 dots j_k))_(L^2)
+  = k!^2 sum_(l=0)^k sum_(m=0)^k (-)^(l+m) innerlines(
+    lambda_i_l (dif lambda_i_0 wedge dots.c wedge hat(dif lambda)_i_l wedge dots.c wedge dif lambda_i_k),
+    lambda_j_m (dif lambda_j_0 wedge dots.c wedge hat(dif lambda)_j_m wedge dots.c wedge dif lambda_j_k),
+  )_(L^2) \
+  = k!^2 sum_(l,m) (-)^(l+m) integral_K innerlines(
+    lambda_i_l (dif lambda_i_0 wedge dots.c wedge hat(dif lambda)_i_l wedge dots.c wedge dif lambda_i_k),
+    lambda_j_m (dif lambda_j_0 wedge dots.c wedge hat(dif lambda)_j_m wedge dots.c wedge dif lambda_j_k),
+  ) vol \
+  = k!^2 sum_(l,m) (-)^(l+m) integral_K lambda_i_l lambda_j_m innerlines(
+    dif lambda_i_0 wedge dots.c wedge hat(dif lambda)_i_l wedge dots.c wedge dif lambda_i_k,
+    dif lambda_j_0 wedge dots.c wedge hat(dif lambda)_j_m wedge dots.c wedge dif lambda_j_k,
+  ) vol \
+  = k!^2 sum_(l,m) (-)^(l+m) innerlines(
+    dif lambda_i_0 wedge dots.c wedge hat(dif lambda)_i_l wedge dots.c wedge dif lambda_i_k,
+    dif lambda_j_0 wedge dots.c wedge hat(dif lambda)_j_m wedge dots.c wedge dif lambda_j_k,
+  )
+  integral_K lambda_i_l lambda_j_m vol \
+$
+
+#pagebreak()
 = The Laplacian
 
 We define the Laplacian here as the negative of the usual laplacian!
