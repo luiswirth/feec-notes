@@ -190,9 +190,31 @@ and for DEC.
 
 https://en.wikipedia.org/wiki/Discrete_calculus
 
-= Simplicial Homology
+= Homological Algebra
 
-Simplicial complex is extended to simplicial chain complex.
+Chain Complex: Sequence of vector spaces and linear maps
+
+$
+  dots.c -> V_(k+1) ->^(diff_(k+1)) V_k ->^(diff_k) V_(k-1) -> dots.c
+  quad "with" quad
+  diff_k compose diff_(k+1) = 0
+$
+
+Graded vector space $V = plus.big.circle_k V_k$ with graded linear operator $diff = plus.big.circle_k diff_k$ of degree -1,
+such that $diff compose diff = 0$.
+
+$V_k$: $k$-chains \
+$diff_k$: $k$-th boundary operator \
+$frak(Z)_k = ker diff_k$: $k$-cycles \
+$frak(B)_k = im diff_(k+1)$: $k$-boundaries \
+$frak(H)_k = frak(Z)_k \/ frak(B)_k$: $k$-th homology space \
+
+== Simplicial Complex
+
+$cal(S)$ simplicial complex.
+
+The span (formal linear combinations) of all simplicies, gives us a vector space.
+Together with the boundary operator, this forms a simplicial chain complex.
 
 = Exterior Algebra
 
@@ -1058,7 +1080,7 @@ $
 
 
 #pagebreak()
-= Hodge-Laplace Problem
+= Hodge-Laplace Source Problem
 
 $
   Delta u = f
@@ -1170,6 +1192,135 @@ $
   vvec(phi) = [integral_Omega f wedge hodge phi_j]_(j=1)^N
 $
 
+
+#pagebreak()
+== Mixed Formulation
+
+*Strong form* \
+Given $f in Lambda^k$, find $(sigma,u,p) in (Lambda^(k-1) times Lambda^k times frak(h)^k)$ s.t.
+$
+  sigma &= delta u
+  quad &&"in" Omega
+  \
+  dif sigma + delta dif u &= f - p
+  quad &&"in" Omega
+  \
+  tr hodge u &= 0
+  quad &&"on" diff Omega
+  \
+  tr hodge dif u &= 0
+  quad &&"on" diff Omega
+  \
+  u perp frak(h)
+$
+
+
+*Weak form* \
+Given $f in L^2 Lambda^k$, find $(sigma,u,p) in (H Lambda^(k-1) times H Lambda^k times frak(h)^k)$ s.t.
+$
+  inner(sigma,tau) - inner(u,dif tau) &= 0
+  quad &&forall tau in H Lambda^(k-1)
+  \
+  inner(dif sigma,v) + inner(dif u,dif v) + inner(p,v) &= inner(f,v)
+  quad &&forall v in H Lambda^k
+  \
+  inner(u,q) &= 0
+  quad &&forall q in frak(h)^k
+$
+
+*Galerkin Discretization*
+$
+  sum_j sigma_j inner(phi^(k-1)_j,phi^(k-1)_i) - sum_j u_j inner(phi^k_j,dif phi^(k-1)_i) &= 0
+  \
+  sum_j sigma_j inner(dif phi^(k-1)_j,phi^k_i) + sum_j u_j inner(dif phi^k_j,dif phi^k_i) + sum_j p_j inner(eta^k_j,phi^k_i) &= sum_j f_j inner(psi_j,phi^k_i)
+  \
+  sum_j u_j inner(phi^k_j,eta^k_i) &= 0
+$
+
+$
+  hodge sigma - dif^transp hodge u &= 0
+  \
+  hodge dif sigma + dif^transp hodge dif u + hodge H p &= hodge f
+  \
+  H^transp hodge u &= 0
+$
+
+$
+  mat(
+    hodge, -dif^transp hodge, 0;
+    hodge dif, dif^transp hodge dif, hodge H;
+    0, H^transp hodge, 0;
+  )
+  vec(sigma, u, p)
+  =
+  vec(0, hodge f, 0)
+$
+
+Alternatively we have (from the "DEC vs FEEC" poster)
+
+Given $f$, find $(sigma, u)$ s.t.
+$
+  mat(
+    hodge, -dif^transp hodge;
+    hodge dif, dif^transp hodge dif
+  )
+  vec(sigma, u)
+  =
+  vec(0, hodge(f - p))
+  \
+  "subject to" H^transp hodge u = 0
+$
+where $p$ is the harmonic part of $f$ and $H$ is a basis for discrete harmonics.
+
+#pagebreak()
+= Hodge-Laplace Eigenvalue Problem
+
+*Strong form* \
+$
+  (delta dif + dif delta) u = lambda u
+$
+
+*Mixed Weak form* \
+
+Find $lambda in RR$, $(sigma, u) in (H Lambda^(k-1) times H Lambda^k \\ {0})$, s.t.
+$
+  inner(sigma, tau) - inner(u, dif tau) &= 0
+  quad &&forall tau in H Lambda^(k-1)
+  \
+  inner(dif sigma, v) + inner(dif u, dif v) &= lambda inner(u,v)
+  quad &&forall v in H Lambda^k
+$
+
+
+*Galerkin Discretization* \
+
+$
+  sum_j sigma_j inner(phi^(k-1)_j, phi^(k-1)_i) - sum_j u_j inner(phi^k_j, dif phi^(k-1)_i) &= 0
+  \
+  sum_j sigma_j inner(dif phi^(k-1)_j, phi^k_i) + sum_j u_j inner(dif phi^k_j, dif phi^k_i) &= lambda sum_j u_j inner(phi^k_j,phi^k_i)
+$
+
+$
+  hodge sigma - dif^transp hodge u &= 0
+  \
+  hodge dif sigma + dif^transp hodge dif u &= lambda hodge u
+$
+
+$
+  mat(
+    hodge, -dif^transp hodge;
+    hodge dif, dif^transp hodge dif;
+  )
+  vec(sigma, u)
+  =
+  lambda
+  mat(
+    0,0;
+    0,hodge
+  )
+  vec(sigma, u)
+$
+
 #pagebreak()
 = The Laplacian
 
@@ -1221,8 +1372,6 @@ We have Green's first identity
 $
   inner(Delta f, g) = -inner(grad f, grad g) + inner(hat(n) dot grad f, g)_(diff)
 $
-
-
 
 
 = Maxwell's Equations
@@ -1379,6 +1528,8 @@ $
   frak(h)^k = { u in V^k sect V_k^star : dif u = 0, dif^star u = 0 }
 $
 
+=== Hodge Laplacian
+
 The abstract Hodge Laplacian is defined on any Hilbert complex.
 If it is the de Rham complex, then it is the normal Hodge Laplacian.
 
@@ -1402,31 +1553,13 @@ $
   cal(N)(L^k) = frak(h)^k, quad frak(h)^k perp cal(R)(L^k)
 $
 
-In 3D we have:
+In 3D we have the following domain(!) complexes:
 $
   0 -> H^1 ->^grad H(curl) ->^curl H(div) ->^div L^2 -> 0
   \
   0 <- L^2 <-^(-div) H0(div) <-^curl H0(curl) <-^(-grad) H0^1 <- 0
 $
-With the following hodge laplace problems
-#table(
-  columns: 6,
-  align: center,
-  //stroke: (x, y) => if y == 0 {(bottom: fgcolor)},
-  stroke: fgcolor,
-  table.header($k$, $L_k = dif^star dif + dif dif^star$, $tilde(L)_k = inner(dif, dif) + inner(dif^star, dif^star)$, [essential BC], [natural BC], $V^(k-1) times V^k$),
-  $0$, $-div grad$, $inner(grad, grad)$, [], $diff u\/diff n$, $H^1$,
-  $1$, $curl curl - grad div$, $inner(curl, curl) + inner(div, div)$, $u dot n$, $curl u times n$, $H^1 times H(curl)$,
-  $2$, $-grad div + curl curl$, $inner(div, div) + inner(curl, curl)$, $u times n$, $div u$, $H(curl) times H(div)$,
-  $3$, $-div grad$, $inner(grad, grad)$, $u$, [], $H(div) times L^2$,
-)
-The problems are the same mirrored about the horizontal just with different
-boudnary conditions. \
-The first and last problems are scalar Laplacians with Neumann and Dirichlet b.c. respectively. \
-The second and third problem are vector Laplacians with ? and ? b.c. respectively (magnetic and ?). \
-
-If we are at either end of the complex, we only get one of either term,
-because the other is zero.
+The full spaces $W$ are always $L^2$.
 
 
 The Hodge-Laplace problem is\
@@ -1440,8 +1573,8 @@ then the laplacian operator is not regular, meaning it doesn't have
 unique solutions. So it's not well posed. So it's necessary to restrict our problem
 further to get uniqueness. The orthogonality to the kernel is necessary.
 
-For a standard scalar homogenuous neumann laplace problem this conditions is the vanishing mean condition
-$integral u = 0$. This is cool :D
+For a standard scalar homogenuous neumann laplace problem this conditions is the
+vanishing mean condition $integral u = 0$.
 
 But the problem is still not well-posed.
 If we take the inner product of the range of $L$ with a harmonic form $p in frak(h)$,
@@ -1460,7 +1593,7 @@ $
 $
 
 For a standard scalar neumann problem this is actually
-$-Delta u = f - macron(f)$, where $macron(f)$ is the averager of $f$.
+$-Delta u = f - macron(f)$, where $macron(f)$ is the average of $f$.
 It's a projection into constants.
 
 Our well-posed strong formulation is\
@@ -1508,10 +1641,13 @@ The first equation is just the definition of the variable $sigma = d^star u$.\
 The second equation says $dif sigma + dif^star dif u = f - p$ and inserting $sigma$ we get
 $dif dif^star u + dif^star dif u = f - p$.
 
+For the 0-form laplacian, there is no $sigma$ and $tau$, only the primal
+weak form is left.
+
 Suprising result! All three formulations are EQUIVALENT!!!
 And all of them are well posed: There exists a unique solution.
 
-Two key properties of all closed Hilbert complexes:
+*Two key properties of all closed Hilbert complexes:*
 - Hodge Decomposition
 - Poincaré inequality
 
@@ -1526,22 +1662,109 @@ $
   frak(Z) = frak(B) perp.circle frak(h)
 $
 
-Giving us the hodge decomposition
+*Theorem (Hodge decomposition):*
 $
-  W = frak(B) perp.circle frak(h) perp.circle frak(Z)^perp
-$
-or
-$
-  W = frak(B) perp.circle frak(h) perp.circle frak(B)^star
+  W = underbrace(frak(B) perp.circle frak(h), frak(Z)) perp.circle underbrace(frak(B)^*, frak(Z)^perp)
 $
 
-And for the domain of the complex operators we get
 $
-  V = frak(B) perp.circle frak(h) perp.circle frak(Z)^(perp V)
+  V = underbrace(frak(B) perp.circle frak(h), frak(Z)) perp.circle frak(Z)^(perp V)
 $
 
-Theorem (Poincaré inequality):
+
+*Theorem (Poincaré inequality):*
 $
   norm(v)_V <= c_p norm(dif v)
   quad forall v in frak(Z)^(perp V)
 $
+
+#pagebreak()
+=== Hodge Laplacian in 3D
+
+#table(
+  columns: 6,
+  align: center,
+  //stroke: (x, y) => if y == 0 {(bottom: fgcolor)},
+  stroke: fgcolor,
+  table.header($k$, $L_k = dif^star dif + dif dif^star$, $tilde(L)_k = inner(dif, dif) + inner(dif^star, dif^star)$, [natural BC], [essential BC], $V^(k-1) times V^k$),
+  $0$, $-div grad + 0$, $inner(grad, grad) + 0$, $diff u\/diff n$, [-], $H^1$,
+  $1$, $curl curl - grad div$, $inner(curl, curl) + inner(div, div)$, $curl u times n$, $u dot n$, $H^1 times H(curl)$,
+  $2$, $-grad div + curl curl$, $inner(div, div) + inner(curl, curl)$, $div u$, $u times n$, $H(curl) times H(div)$,
+  $3$, $0 -div grad$, $0 + inner(grad, grad)$, [-], $u$, $H(div) times L^2$,
+)
+The problems are the same mirrored about the horizontal just with different
+boudnary conditions. \
+The 0-form and n-form problems are scalar Laplacians with Neumann and Dirichlet b.c. respectively. \
+The 1-form and 2-form problems are vector Laplacians with magnetic and ? b.c. respectively. \
+
+The domain of $d^*$ is always $H0(d^*)$, meaning it is a space that consists of forms that are zero on the boundary.
+From this we get all boundary condtions of our problems.
+The primal natural b.c. come from the term $d^star d$, meaning the derivative of the function needs to be zero on the boundary.
+The primal essential b.c. come from the term $d d^star$, meaning the function needs to be zero on the boundary.
+In the primal weak formulation the essential bc are imposed on the spaces directly and the
+natural bc are implied the variational formulation.
+For the mixed weak all bc are natural! There are no essential ones imposed on the space!
+
+Define $hat(V) = frak(h)^(perp V) = frak(h)^perp sect V$
+
+
+*$k=0$*:\
+$
+  -div grad u = 0
+$
+
+Hodge Decomposition is
+$
+  L^2 = div H0(div) perp.circle RR
+$
+
+The Poincaré inequality (called Poincaré-Neumann inequality) is
+$
+  norm(u)_(H^1) <= c_p norm(grad u)_(L^2)
+  quad forall u in hat(H)^1
+$
+
+$hat(H^1)$ is $H^1$ without constants.
+
+
+*$k=1$*:\
+
+Hodge Decomposition is
+$
+  L^2 (Omega,RR^3) = grad H^1 perp.circle frak(h)^1 perp.circle curl H0(curl)
+$
+Violoated by existance of tunnels.
+
+
+The Poincaré inequality is
+$
+  norm(u)_(H^curl) <= c_p norm(curl u)_(L^2)
+  quad forall u in H(curl) sect cal(N)(curl)^perp
+$
+
+*$k=2$*:\
+
+Hodge Decomposition is
+$
+  L^2 (Omega,RR^3) = curl H(curl) perp.circle frak(h)^2 perp.circle H0^1
+$
+Violated by existance of voids.
+
+The Poincaré inequality is
+$
+  norm(u)_(H^div) <= c_p norm(div u)_(L^2)
+  quad forall u in H(div) sect cal(N)(div)^perp
+$
+
+*$k=3$*:\
+
+
+Hodge Decomposition is
+$
+  L^2 = div H(div)
+$
+Just the statement that $div$ is onto/surjective.
+Never violated, because Betti numbers always zero, right?
+No harmonic three forms.
+
+The Poincaré inequality doesn't say anything.
