@@ -1,6 +1,7 @@
 #import "setup.typ": *
 #show: notes-template
 
+
 = Notation
 
 $
@@ -445,7 +446,9 @@ Using the Leibniz Rule we can derive what the exterior derivative of a 1-form
 term $alpha_j dif x^j$ must be, if we interpret this term as a wedge $alpha_j
 wedge dif x^j$ between a 0-form $alpha_j$ and a 1-form $dif x^j$.
 $
-  dif (alpha)j wedge dif x^j) = (dif alpha_j) wedge dif x^j + alpha_j wedge (dif dif x^j)
+  dif (alpha_j dif x^j)
+  = dif (alpha_j wedge dif x^j)
+  = (dif alpha_j) wedge dif x^j + alpha_j wedge (dif dif x^j)
   = (diff alpha_j)/(diff x^i) dif x^i wedge dif x^j
 $
 
@@ -456,6 +459,20 @@ $
   = integral_(diff Omega) omega wedge eta
 $
 for $omega in Lambda^l (Omega), eta in Lambda^k (Omega), 0 <= l, k < n − 1, l + k = n − 1$.
+
+
+$
+  integral_Omega dif omega wedge eta
+  =
+  (-1)^(k-1)
+  integral_Omega omega wedge dif eta
+  +
+  integral_(diff Omega) "Tr" omega wedge "Tr" eta
+$
+
+$
+  inner(dif omega, eta) = inner(omega, delta eta) + integral_(diff Omega) "Tr" omega wedge "Tr" hodge eta
+$
 
 
 #pagebreak()
@@ -544,14 +561,6 @@ $
   = [inner(lambda_I, lambda_J)_(L^2 Lambda^k)]_(I,J in hat(cal(I))^n_k)
 $
 
-$
-  inner(lambda_(i_0 dots i_k), lambda_(j_0 dots j_k))
-  = (k!)^2 sum_(l=0)^k sum_(m=0)^k (-1)^(l+m) 
-  inner(
-    lambda_i_l space dif lambda_i_0 wedge dots.c wedge hat(dif lambda_i_l) wedge dots wedge dif lambda_i_k,
-    lambda_j_m space dif lambda_j_0 wedge dots.c wedge hat(dif lambda_j_m) wedge dots wedge dif lambda_j_k,
-  )
-$
 
 == Computation of Hodge Star in Tensor Index Notation
 
@@ -703,6 +712,333 @@ $
   //)
 
 
+
+#pagebreak()
+= Hodge-Laplace Source Problem
+
+== Primal Strong form
+$
+  Delta u = f
+$
+with $u,f in Lambda^k (Omega)$
+
+Hodge-Laplace operator
+$
+  Delta: Lambda^k (Omega) -> Lambda^k (Omega)
+  \
+  Delta = dif delta + delta dif
+$
+
+
+== Primal Weak Form
+
+Form the $L^2$-inner product with a test "function" $v in Lambda^k (Omega)$.
+$
+  Delta u = f
+$
+
+We obtain the variational equation
+$
+  u in H Lambda^k (Omega): quad quad
+  inner(Delta u, v) = inner(f, v)
+  quad quad forall v in H Lambda^k (Omega)
+$
+
+Or in integral form
+$
+  integral_Omega ((dif delta + delta dif) u) wedge hodge v = integral_Omega f wedge hodge v
+$
+
+
+If $omega$ or $eta$ vanishes on the boundary, then
+$delta$ is the formal adjoint of $dif$ w.r.t. the $L^2$-inner product.
+$
+  inner(dif omega, eta) = inner(omega, delta eta)
+$
+
+$
+  inner(Delta u, v) = inner(f, v)
+  \
+  inner((dif delta + delta dif) u, v) = inner(f, v)
+  \
+  inner((dif delta + delta dif) u, v) = inner(f, v)
+  \
+  inner(dif delta u, v) + inner(delta dif u, v) = inner(f, v)
+  \
+  inner(delta u, delta v) + inner(dif u, dif v) = inner(f, v)
+$
+
+#v(1cm)
+
+$
+  u in H Lambda^k (Omega): quad quad
+  inner(delta u, delta v) + inner(dif u, dif v) = inner(f, v)
+  quad
+  forall v in H Lambda^k (Omega)
+$
+
+$
+  u in H Lambda^k (Omega): quad
+  integral_Omega (delta u) wedge hodge (delta v) + integral_Omega (dif u) wedge hodge (dif v) = integral_Omega f wedge hodge v
+  quad
+  forall v in H Lambda^k (Omega)
+$
+
+== Galerkin Primal Weak Form
+
+$
+  u_h = sum_(i=1)^N mu_i phi_i
+  quad quad
+  v_h = phi_j
+  \
+  u in H Lambda^k (Omega): quad quad
+  inner(delta u, delta v) + inner(dif u, dif v) = inner(f, v)
+  quad quad forall v in H Lambda^k (Omega)
+  \
+  vvec(mu) in RR^N: quad
+  sum_(i=1)^N mu_i (integral_Omega (delta phi_i) wedge hodge (delta phi_j) + integral_Omega (dif phi_i) wedge hodge (dif phi_j))
+  =
+  sum_(i=1)^N mu_i integral_Omega f wedge hodge phi_j
+  quad forall j in {1,dots,N}
+$
+
+$
+  amat(A) vvec(mu) = 0
+  \
+  A =
+  [integral_Omega (delta phi_i) wedge hodge (delta phi_j)]_(i,j=1)^N
+  +
+  [integral_Omega (dif phi_i) wedge hodge (dif phi_j)]_(i,j=1)^N
+  \
+  vvec(phi) = [integral_Omega f wedge hodge phi_j]_(j=1)^N
+$
+
+
+== Mixed Strong Formulation
+
+Given $f in Lambda^k$, find $(sigma,u,p) in (Lambda^(k-1) times Lambda^k times frak(h)^k)$ s.t.
+$
+  sigma - delta u &= 0
+  quad &&"in" Omega
+  \
+  dif sigma + delta dif u &= f - p
+  quad &&"in" Omega
+  \
+  tr hodge u &= 0
+  quad &&"on" diff Omega
+  \
+  tr hodge dif u &= 0
+  quad &&"on" diff Omega
+  \
+  u perp frak(h)
+$
+
+
+== Mixed Weak Form
+
+Given $f in L^2 Lambda^k$, find $(sigma,u,p) in (H Lambda^(k-1) times H Lambda^k times frak(h)^k)$ s.t.
+$
+  inner(sigma,tau) - inner(u,dif tau) &= 0
+  quad &&forall tau in H Lambda^(k-1)
+  \
+  inner(dif sigma,v) + inner(dif u,dif v) + inner(p,v) &= inner(f,v)
+  quad &&forall v in H Lambda^k
+  \
+  inner(u,q) &= 0
+  quad &&forall q in frak(h)^k
+$
+
+== Galerkin Mixed Weak Form
+$
+  sum_j sigma_j inner(phi^(k-1)_j,phi^(k-1)_i) - sum_j u_j inner(phi^k_j,dif phi^(k-1)_i) &= 0
+  \
+  sum_j sigma_j inner(dif phi^(k-1)_j,phi^k_i) + sum_j u_j inner(dif phi^k_j,dif phi^k_i) + sum_j p_j inner(eta^k_j,phi^k_i) &= sum_j f_j inner(psi_j,phi^k_i)
+  \
+  sum_j u_j inner(phi^k_j,eta^k_i) &= 0
+$
+
+$
+  hodge sigma - dif^transp hodge u &= 0
+  \
+  hodge dif sigma + dif^transp hodge dif u + hodge H p &= hodge f
+  \
+  H^transp hodge u &= 0
+$
+
+$
+  mat(
+    hodge, -dif^transp hodge, 0;
+    hodge dif, dif^transp hodge dif, hodge H;
+    0, H^transp hodge, 0;
+  )
+  vec(sigma, u, p)
+  =
+  vec(0, hodge f, 0)
+$
+
+Alternatively we have (from the "DEC vs FEEC" poster)
+
+Given $f$, find $(sigma, u)$ s.t.
+$
+  mat(
+    hodge, -dif^transp hodge;
+    hodge dif, dif^transp hodge dif
+  )
+  vec(sigma, u)
+  =
+  vec(0, hodge(f - p))
+  \
+  "subject to" H^transp hodge u = 0
+$
+where $p$ is the harmonic part of $f$ and $H$ is a basis for discrete harmonics.
+
+#pagebreak()
+= Hodge-Laplace Eigenvalue Problem
+
+== Primal Strong Form
+$
+  (delta dif + dif delta) u = lambda u
+$
+
+== Mixed Weak Form
+
+Find $lambda in RR$, $(sigma, u) in (H Lambda^(k-1) times H Lambda^k \\ {0})$, s.t.
+$
+  inner(sigma, tau) - inner(u, dif tau) &= 0
+  quad &&forall tau in H Lambda^(k-1)
+  \
+  inner(dif sigma, v) + inner(dif u, dif v) &= lambda inner(u,v)
+  quad &&forall v in H Lambda^k
+$
+
+
+== Galerkin Mixed Weak Form
+$
+  sum_j sigma_j inner(phi^(k-1)_j, phi^(k-1)_i) - sum_j u_j inner(phi^k_j, dif phi^(k-1)_i) &= 0
+  \
+  sum_j sigma_j inner(dif phi^(k-1)_j, phi^k_i) + sum_j u_j inner(dif phi^k_j, dif phi^k_i) &= lambda sum_j u_j inner(phi^k_j,phi^k_i)
+$
+
+$
+  hodge sigma - dif^transp hodge u &= 0
+  \
+  hodge dif sigma + dif^transp hodge dif u &= lambda hodge u
+$
+
+$
+  mat(
+    hodge, -dif^transp hodge;
+    hodge dif, dif^transp hodge dif;
+  )
+  vec(sigma, u)
+  =
+  lambda
+  mat(
+    0,0;
+    0,hodge
+  )
+  vec(sigma, u)
+$
+
+This is a symmetric indefinite sparse generalized matrix eigenvalue problem,
+that can be solved by an iterative eigensolver such as Krylov-Schur.
+This is also called a GHIEP problem.
+
+#pagebreak()
+
+= Derivation of Analytic Element Matrix Formulas
+
+This is the heart of the FEEC implementation!
+
+== Exterior Derivative of Whitney Forms on Reference Cell
+
+The exterior derivative of a Whitney form:
+$
+  dif lambda_(i_0 dots i_k)
+  &= k! sum_(l=0)^k (-1)^l dif lambda_i_l wedge
+  (dif lambda_i_0 wedge dots.c wedge hat(dif lambda_i_l) wedge dots.c wedge dif lambda_i_k)
+  \
+  &= k! sum_(l=0)^k (-1)^l (-1)^l
+  (dif lambda_i_0 wedge dots.c wedge dif lambda_i_l wedge dots.c wedge dif lambda_i_k)
+  \
+  &= (k+1)! dif lambda_i_0 wedge dots.c wedge dif lambda_i_k
+$
+
+Therefore for $i_0 != 0$ we have
+$
+  dif lambda_(i_0 dots i_k)
+  &= (k + 1)! dif x^(i_0-1) wedge dots.c wedge dif x^(i_k-1)
+$
+
+And for $i_0 = 0$ we have
+$
+  dif lambda_(0 i_1 dots i_k)
+  &= (k+1)! dif lambda_0 wedge dif lambda_i_1 wedge dots.c wedge dif lambda_i_k
+  \
+  &= (k+1)! (-sum_(j=0)^(n-1) dif x^j) wedge dif x^(i_1-1) wedge dots.c wedge dif x^(i_k-1)
+  \
+  &= -(k+1)! sum_(j=0)^(n-1) dif x^j wedge dif x^(i_1-1) wedge dots.c wedge dif x^(i_k-1)
+
+$
+
+
+$
+  L^k = [inner(dif lambda_tau, dif lambda_sigma)_(L^2 Lambda^(k+1) (K))]_(sigma,tau in Delta_k (K))
+$
+
+$
+  L^0 = [inner(dif lambda_j, dif lambda_i)_(L^2 Lambda^1 (K))]_(i,j in Delta_0 (K))
+$
+
+
+== Mass Bilinear form
+
+$
+  M = [inner(lambda_tau, lambda_sigma)_(L^2 Lambda^k (K))]_(sigma,tau in Delta_k (K))
+$
+
+$
+  inner(lambda_(i_0 dots i_k), lambda_(j_0 dots j_k))_(L^2)
+  = k!^2 sum_(l=0)^k sum_(m=0)^k (-)^(l+m) innerlines(
+    lambda_i_l (dif lambda_i_0 wedge dots.c wedge hat(dif lambda)_i_l wedge dots.c wedge dif lambda_i_k),
+    lambda_j_m (dif lambda_j_0 wedge dots.c wedge hat(dif lambda)_j_m wedge dots.c wedge dif lambda_j_k),
+  )_(L^2) \
+  = k!^2 sum_(l,m) (-)^(l+m) integral_K innerlines(
+    lambda_i_l (dif lambda_i_0 wedge dots.c wedge hat(dif lambda)_i_l wedge dots.c wedge dif lambda_i_k),
+    lambda_j_m (dif lambda_j_0 wedge dots.c wedge hat(dif lambda)_j_m wedge dots.c wedge dif lambda_j_k),
+  ) vol \
+  = k!^2 sum_(l,m) (-)^(l+m) integral_K lambda_i_l lambda_j_m innerlines(
+    dif lambda_i_0 wedge dots.c wedge hat(dif lambda)_i_l wedge dots.c wedge dif lambda_i_k,
+    dif lambda_j_0 wedge dots.c wedge hat(dif lambda)_j_m wedge dots.c wedge dif lambda_j_k,
+  ) vol \
+  = k!^2 sum_(l,m) (-)^(l+m) innerlines(
+    dif lambda_i_0 wedge dots.c wedge hat(dif lambda)_i_l wedge dots.c wedge dif lambda_i_k,
+    dif lambda_j_0 wedge dots.c wedge hat(dif lambda)_j_m wedge dots.c wedge dif lambda_j_k,
+  )
+  integral_K lambda_i_l lambda_j_m vol \
+$
+
+Let's assume increasing indices.
+
+For a reference simplex, we have
+
+If $i_0 != 0$
+$
+  dif lambda_i_0 wedge dots.c wedge hat(dif lambda)_i_l wedge dots.c wedge dif lambda_i_k
+  =
+  dif x^(i_0 - 1) wedge dots.c wedge hat(dif x)^(i_l - 1) wedge dots.c wedge dif x^(i_k - 1)
+$
+else if $i_0 = 0$
+$
+  dif lambda_i_0 wedge dots.c wedge hat(dif lambda)_i_l wedge dots.c wedge dif lambda_i_k
+  &=
+  (-sum_(j=0)^(n-1) dif x^j) wedge dif x^(i_1 - 1) wedge dots.c wedge hat(dif x)^(i_l - 1) wedge dots.c wedge dif x^(i_k - 1)
+  \ &=
+  -sum_(j=0)^(n-1) dif x^j wedge dif x^(i_1 - 1) wedge dots.c wedge hat(dif x)^(i_l - 1) wedge dots.c wedge dif x^(i_k - 1)
+$
+
+
+
 #pagebreak()
 = Barycentric Coordinates
 
@@ -726,11 +1062,22 @@ $
 
 The following integral formula for powers of barycentric coordinate functions holds (NUMPDE):
 $
-  integral_sigma lambda_0^(alpha_0) dots.c lambda_d^(alpha_d) dif x
+  integral_K lambda_0^(alpha_0) dots.c lambda_n^(alpha_n) vol
   =
-  d! abs(K) (alpha_0 ! space dots.c space alpha_d !)/(alpha_0 + dots.c + alpha_d + d)!
+  n! abs(K) (alpha_0 ! space dots.c space alpha_n !)/(alpha_0 + dots.c + alpha_n + n)!
 $
-where $sigma in Delta_d, avec(alpha) in NN^(d+1)$
+where $K in Delta_n, avec(alpha) in NN^(n+1)$.\
+The formula treats all barycoords symmetrically.
+
+For piecewise linear FE, the only relevant results are:
+$
+  integral_K lambda_i lambda_j vol
+  = abs(K)/((n+2)(n+1)) (1 + delta_(i j))
+$
+
+$
+  integral_K lambda_i vol = abs(K)/(n+1)
+$
 
 = Lagrange Basis
 #v(1cm)
@@ -1024,331 +1371,7 @@ $
   &cal(W)[K_0] = cal(W)[v_0 v_1 v_2] = (2-2x_2) dif x_0 wedge dif x_1 + 2 x_1 dif x_0 wedge dif x_2 - 2 x_0 dif x_1 wedge dif x_2
 $
 
- TODO
 
-#pagebreak()
-== Exterior Derivative of Whitney Forms on Reference Cell
-
-The exterior derivative of a Whitney form:
-$
-  dif lambda_(i_0 dots i_k)
-  &= k! sum_(l=0)^k (-1)^l dif lambda_i_l wedge
-  (dif lambda_i_0 wedge dots.c wedge hat(dif lambda_i_l) wedge dots.c wedge dif lambda_i_k)
-  \
-  &= k! sum_(l=0)^k (-1)^l (-1)^l
-  (dif lambda_i_0 wedge dots.c wedge dif lambda_i_l wedge dots.c wedge dif lambda_i_k)
-  \
-  &= (k+1)! dif lambda_i_0 wedge dots.c wedge dif lambda_i_k
-$
-
-For a reference cell we have
-$
-  dif lambda_i = cases(
-    -sum_(j=0)^(n-1) dif x^j
-    &quad "if" i = 0,
-    dif x^(i-1)
-    &quad "otherwise"
-  )
-$
-
-Therefore for $i_0 != 0$ we have
-$
-  dif lambda_(i_0 dots i_k)
-  &= (k + 1)! dif x^(i_0-1) wedge dots.c wedge dif x^(i_k-1)
-$
-
-And for $i_0 = 0$ we have
-// TODO: improve derivation
-$
-  dif lambda_(0 i_1 dots i_k)
-  &= (k+1)! dif lambda_0 wedge dif lambda_i_1 wedge dots.c wedge dif lambda_i_k
-  \
-  &= (k+1)! (-sum_(j=0)^(n-1) dif x^j) wedge dif x^(i_1-1) wedge dots.c wedge dif x^(i_k-1)
-  \
-  &= -(k+1)! sum_(j=0)^(n-1) dif x^j wedge dif x^(i_1-1) wedge dots.c wedge dif x^(i_k-1)
-
-$
-
-
-$
-  L^k = [inner(dif lambda_tau, dif lambda_sigma)_(L^2 Lambda^(k+1) (K))]_(sigma,tau in Delta_k (K))
-$
-
-$
-  L^0 = [inner(dif lambda_j, dif lambda_i)_(L^2 Lambda^1 (K))]_(i,j in Delta_0 (K))
-$
-
-
-#pagebreak()
-= Hodge-Laplace Source Problem
-
-$
-  Delta u = f
-$
-with $u,f in Lambda^k (Omega)$
-
-Hodge-Laplace operator
-$
-  Delta: Lambda^k (Omega) -> Lambda^k (Omega)
-  \
-  Delta = dif delta + delta dif
-$
-
-
-== Weak Variational Form
-
-Form the $L^2$-inner product with a test "function" $v in Lambda^k (Omega)$.
-$
-  Delta u = f
-$
-
-We obtain the variational equation
-$
-  u in H Lambda^k (Omega): quad quad
-  inner(Delta u, v) = inner(f, v)
-  quad quad forall v in H Lambda^k (Omega)
-$
-
-Or in integral form
-$
-  integral_Omega ((dif delta + delta dif) u) wedge hodge v = integral_Omega f wedge hodge v
-$
-
-== Integration by Parts
-
-$
-  integral_Omega dif omega wedge eta
-  =
-  (-1)^(k-1)
-  integral_Omega omega wedge dif eta
-  +
-  integral_(diff Omega) "Tr" omega wedge "Tr" eta
-$
-
-$
-  inner(dif omega, eta) = inner(omega, delta eta) + integral_(diff Omega) "Tr" omega wedge "Tr" hodge eta
-$
-
-If $omega$ or $eta$ vanishes on the boundary, then
-$delta$ is the formal adjoint of $dif$ w.r.t. the $L^2$-inner product.
-$
-  inner(dif omega, eta) = inner(omega, delta eta)
-$
-
-$
-  inner(Delta u, v) = inner(f, v)
-  \
-  inner((dif delta + delta dif) u, v) = inner(f, v)
-  \
-  inner((dif delta + delta dif) u, v) = inner(f, v)
-  \
-  inner(dif delta u, v) + inner(delta dif u, v) = inner(f, v)
-  \
-  inner(delta u, delta v) + inner(dif u, dif v) = inner(f, v)
-$
-
-#v(1cm)
-
-$
-  u in H Lambda^k (Omega): quad quad
-  inner(delta u, delta v) + inner(dif u, dif v) = inner(f, v)
-  quad
-  forall v in H Lambda^k (Omega)
-$
-
-$
-  u in H Lambda^k (Omega): quad
-  integral_Omega (delta u) wedge hodge (delta v) + integral_Omega (dif u) wedge hodge (dif v) = integral_Omega f wedge hodge v
-  quad
-  forall v in H Lambda^k (Omega)
-$
-
-== Galerkin Discretization
-
-$
-  u_h = sum_(i=1)^N mu_i phi_i
-  quad quad
-  v_h = phi_j
-  \
-  u in H Lambda^k (Omega): quad quad
-  inner(delta u, delta v) + inner(dif u, dif v) = inner(f, v)
-  quad quad forall v in H Lambda^k (Omega)
-  \
-  vvec(mu) in RR^N: quad
-  sum_(i=1)^N mu_i (integral_Omega (delta phi_i) wedge hodge (delta phi_j) + integral_Omega (dif phi_i) wedge hodge (dif phi_j))
-  =
-  sum_(i=1)^N mu_i integral_Omega f wedge hodge phi_j
-  quad forall j in {1,dots,N}
-$
-
-$
-  amat(A) vvec(mu) = 0
-  \
-  A =
-  [integral_Omega (delta phi_i) wedge hodge (delta phi_j)]_(i,j=1)^N
-  +
-  [integral_Omega (dif phi_i) wedge hodge (dif phi_j)]_(i,j=1)^N
-  \
-  vvec(phi) = [integral_Omega f wedge hodge phi_j]_(j=1)^N
-$
-
-
-#pagebreak()
-== Mixed Formulation
-
-*Strong form* \
-Given $f in Lambda^k$, find $(sigma,u,p) in (Lambda^(k-1) times Lambda^k times frak(h)^k)$ s.t.
-$
-  sigma &= delta u
-  quad &&"in" Omega
-  \
-  dif sigma + delta dif u &= f - p
-  quad &&"in" Omega
-  \
-  tr hodge u &= 0
-  quad &&"on" diff Omega
-  \
-  tr hodge dif u &= 0
-  quad &&"on" diff Omega
-  \
-  u perp frak(h)
-$
-
-
-*Weak form* \
-Given $f in L^2 Lambda^k$, find $(sigma,u,p) in (H Lambda^(k-1) times H Lambda^k times frak(h)^k)$ s.t.
-$
-  inner(sigma,tau) - inner(u,dif tau) &= 0
-  quad &&forall tau in H Lambda^(k-1)
-  \
-  inner(dif sigma,v) + inner(dif u,dif v) + inner(p,v) &= inner(f,v)
-  quad &&forall v in H Lambda^k
-  \
-  inner(u,q) &= 0
-  quad &&forall q in frak(h)^k
-$
-
-*Galerkin Discretization*
-$
-  sum_j sigma_j inner(phi^(k-1)_j,phi^(k-1)_i) - sum_j u_j inner(phi^k_j,dif phi^(k-1)_i) &= 0
-  \
-  sum_j sigma_j inner(dif phi^(k-1)_j,phi^k_i) + sum_j u_j inner(dif phi^k_j,dif phi^k_i) + sum_j p_j inner(eta^k_j,phi^k_i) &= sum_j f_j inner(psi_j,phi^k_i)
-  \
-  sum_j u_j inner(phi^k_j,eta^k_i) &= 0
-$
-
-$
-  hodge sigma - dif^transp hodge u &= 0
-  \
-  hodge dif sigma + dif^transp hodge dif u + hodge H p &= hodge f
-  \
-  H^transp hodge u &= 0
-$
-
-$
-  mat(
-    hodge, -dif^transp hodge, 0;
-    hodge dif, dif^transp hodge dif, hodge H;
-    0, H^transp hodge, 0;
-  )
-  vec(sigma, u, p)
-  =
-  vec(0, hodge f, 0)
-$
-
-Alternatively we have (from the "DEC vs FEEC" poster)
-
-Given $f$, find $(sigma, u)$ s.t.
-$
-  mat(
-    hodge, -dif^transp hodge;
-    hodge dif, dif^transp hodge dif
-  )
-  vec(sigma, u)
-  =
-  vec(0, hodge(f - p))
-  \
-  "subject to" H^transp hodge u = 0
-$
-where $p$ is the harmonic part of $f$ and $H$ is a basis for discrete harmonics.
-
-#pagebreak()
-= Hodge-Laplace Eigenvalue Problem
-
-*Strong form* \
-$
-  (delta dif + dif delta) u = lambda u
-$
-
-*Mixed Weak form* \
-
-Find $lambda in RR$, $(sigma, u) in (H Lambda^(k-1) times H Lambda^k \\ {0})$, s.t.
-$
-  inner(sigma, tau) - inner(u, dif tau) &= 0
-  quad &&forall tau in H Lambda^(k-1)
-  \
-  inner(dif sigma, v) + inner(dif u, dif v) &= lambda inner(u,v)
-  quad &&forall v in H Lambda^k
-$
-
-
-*Galerkin Discretization* \
-
-$
-  sum_j sigma_j inner(phi^(k-1)_j, phi^(k-1)_i) - sum_j u_j inner(phi^k_j, dif phi^(k-1)_i) &= 0
-  \
-  sum_j sigma_j inner(dif phi^(k-1)_j, phi^k_i) + sum_j u_j inner(dif phi^k_j, dif phi^k_i) &= lambda sum_j u_j inner(phi^k_j,phi^k_i)
-$
-
-$
-  hodge sigma - dif^transp hodge u &= 0
-  \
-  hodge dif sigma + dif^transp hodge dif u &= lambda hodge u
-$
-
-$
-  mat(
-    hodge, -dif^transp hodge;
-    hodge dif, dif^transp hodge dif;
-  )
-  vec(sigma, u)
-  =
-  lambda
-  mat(
-    0,0;
-    0,hodge
-  )
-  vec(sigma, u)
-$
-
-#pagebreak()
-
-= Mass Bilinear form
-
-$
-  M = [inner(lambda_tau, lambda_sigma)_(L^2 Lambda^k (K))]_(sigma,tau in Delta_k (K))
-$
-
-$
-  inner(lambda_(i_0 dots i_k), lambda_(j_0 dots j_k))_(L^2)
-  = k!^2 sum_(l=0)^k sum_(m=0)^k (-)^(l+m) innerlines(
-    lambda_i_l (dif lambda_i_0 wedge dots.c wedge hat(dif lambda)_i_l wedge dots.c wedge dif lambda_i_k),
-    lambda_j_m (dif lambda_j_0 wedge dots.c wedge hat(dif lambda)_j_m wedge dots.c wedge dif lambda_j_k),
-  )_(L^2) \
-  = k!^2 sum_(l,m) (-)^(l+m) integral_K innerlines(
-    lambda_i_l (dif lambda_i_0 wedge dots.c wedge hat(dif lambda)_i_l wedge dots.c wedge dif lambda_i_k),
-    lambda_j_m (dif lambda_j_0 wedge dots.c wedge hat(dif lambda)_j_m wedge dots.c wedge dif lambda_j_k),
-  ) vol \
-  = k!^2 sum_(l,m) (-)^(l+m) integral_K lambda_i_l lambda_j_m innerlines(
-    dif lambda_i_0 wedge dots.c wedge hat(dif lambda)_i_l wedge dots.c wedge dif lambda_i_k,
-    dif lambda_j_0 wedge dots.c wedge hat(dif lambda)_j_m wedge dots.c wedge dif lambda_j_k,
-  ) vol \
-  = k!^2 sum_(l,m) (-)^(l+m) innerlines(
-    dif lambda_i_0 wedge dots.c wedge hat(dif lambda)_i_l wedge dots.c wedge dif lambda_i_k,
-    dif lambda_j_0 wedge dots.c wedge hat(dif lambda)_j_m wedge dots.c wedge dif lambda_j_k,
-  )
-  integral_K lambda_i_l lambda_j_m vol \
-$
 
 #pagebreak()
 = The Laplacian
