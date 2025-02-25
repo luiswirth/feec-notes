@@ -1,6 +1,34 @@
 #import "setup.typ": *
 #show: notes-template
 
+= Open Theoretical Questions
+
+- How to manufactured solution?
+- How do boundary conditions work in FEEC?
+  Mixed Weak only has natural B.C.
+  Can we impose essential ones?
+- Is my de Rham complex in 2D correct? Div is not always the last one? Is it always d^3?
+- What is the best quadrature for my use-case?
+  - Vertex-based Quadrature. Exact for linear.
+  - Barycentric Quadrature (one-point). Exact for linear.
+  - Something special for discrete differential forms based on the ExteriorRank?
+- Why is my H^1 convergence order 2? Shouldn't it be order 1?
+
+= Plan of action
+
+The results section can wait. We first need to write down the
+main ideas and a little bit of theory to explain the implementation.
+
+- Verify Hodge-Laplace Source Problem
+- Solve Manufactured Solution Problems problems and get results
+
+Programming TODO:
+- Efficent implementation -> Parametric FE
+- Barycentric subdivision? -> with coordinates
+- Parallel assembly?
+- Visualizations?
+- Compute Simplical Homology of Mesh? -> PETSc Sparse SVD
+
 
 = Notation
 
@@ -10,48 +38,12 @@ $
   hat(cal(I))^n_k = {I=(i_0,dots,i_(k-1)): 0 <= i_0 < i_1 < dots.c < i_(k-1) <= n-1}
 $
 
-= Domain
-
-In the most general sense, $Omega$ may be a (piecewise) smooth oriented and
-bounded $n$-dimensional Riemannian manifold, $n in NN$, with a piecewise smooth
-boundary.
-
-= Simplicial Manifold
-
-The dimension is $n$.
-
-A *simplicial manifold* is a *simplicial complex* for which the geometric
-realization is homeomorphic to a topological manifold.
-
-For a simplicial complex to manifold, the neighborhood of each vertex (i.e. the
-set of simplices that contain that point as a vertex) needs to be homeomorphic
-to a $n$-ball.
-
-- The $n$-simplicies of the manifold are called cells.
-- The $n-1$-simplicies of the manifold are called facets.
-
-= Geometry of Simplicial Manifold
-
-Geometric information is conveyed through a Riemannian metric, turning our
-object of study into a *simplicial Riemannian manifold*.
-
-It's the central object in the study of *Regge Calculus*.
-Here the Riemannian metric is called the *Regge metric* and is fully specified
-by knowing the edge lenghs of the simplicial complex.
-
 = Mesh and Meshing
 
 This might be an important theoretical result for the thesis:
 https://en.wikipedia.org/wiki/Simplicial_approximation_theorem
 
-Barycentric subdivisions is the way to go for refining a simplicial complex.
-
-There is a notion of dual mesh, that is relevant (at least) in DEC.
-If we have a simplicial mesh, then the dual mesh is in general not a simplicial mesh.
-
-In Wikipedia this topic is only covered as a dual graph https://en.wikipedia.org/wiki/Dual_graph.
-
-Delaunay traingulations and Voronoi diagrams are dual. Which means constructing a
+Delaunay traingulations and Voronoi diagrams are dual (dual mesh). Which means constructing a
 Voronoi diagram and a delaunay triangulation is equivalent.
 This is helpful for FEM mesh generation.
 
@@ -183,416 +175,7 @@ $
   quad forall v in H(curl)
 $
 
-
-= Discrete calculus
-
-Discrete Calculus is the kind of calculus one needs for finite difference schemes
-and for DEC.
-
-https://en.wikipedia.org/wiki/Discrete_calculus
-
-= Homological Algebra
-
-Chain Complex: Sequence of vector spaces and linear maps
-
-$
-  dots.c -> V_(k+1) ->^(diff_(k+1)) V_k ->^(diff_k) V_(k-1) -> dots.c
-  quad "with" quad
-  diff_k compose diff_(k+1) = 0
-$
-
-Graded vector space $V = plus.big.circle_k V_k$ with graded linear operator $diff = plus.big.circle_k diff_k$ of degree -1,
-such that $diff compose diff = 0$.
-
-$V_k$: $k$-chains \
-$diff_k$: $k$-th boundary operator \
-$frak(Z)_k = ker diff_k$: $k$-cycles \
-$frak(B)_k = im diff_(k+1)$: $k$-boundaries \
-$frak(H)_k = frak(Z)_k \/ frak(B)_k$: $k$-th homology space \
-
-== Simplicial Complex
-
-$cal(S)$ simplicial complex.
-
-The span (formal linear combinations) of all simplicies, gives us a vector space.
-Together with the boundary operator, this forms a simplicial chain complex.
-
-= Exterior Algebra
-
-We have an vector space $V$ or a field $KK$.\
-We first define the tensor algebra
-$
-  T(V) = plus.circle.big_(k=0)^oo V^(times.circle k)
-  = K plus.circle V plus.circle (V times.circle V) plus.circle dots.c
-$
-
-Now we define the two-sides ideal $I = { x times.circle x : x in V }$.\
-The exterior algebra is now the quotient algebra of the tensor algebra by the ideal
-$
-  wedgespace(V) = T(V)\/I
-  = wedgespace^0(V) plus.circle wedgespace^1(V) plus.circle dots.c plus.circle wedgespace^n (V)
-$
-The exterior product $wedge$ of two element in $wedgespace(V)$ is then
-$
-  alpha wedge beta = alpha times.circle beta quad (mod I)
-$
-
-We have dimensionality given by the binomial coefficent.
-$
-  dim wedgespace^k (V) = binom(n,k)
-$
-
-The $k$-th exterior algebra $wedgespace^k V$ over the vector space $V$ is
-called the space of $k$-vectors.\
-The $k$-th exterior algebra $wedgespace^k (V^*)$ over the dual space $V^*$ of $V$ is
-called the space of $k$-forms.\
-
-
-We can easily switch between $k$-vectors and $k$-forms, if we identify the basis of $V$
-with the dual(!) basis of $V^*$. We just reinterpret the components.\
-This defines two unary operators.
-- Flat #flat to move from $k$-vector to $k$-form.
-- Sharp #sharp to move from $k$-form to $k$-vector.
-This is inspired by musical notation. It moves the tensor index down (#flat) and up (#sharp).
-
-= Differential Geometry
-
-If we have an immersion (maybe also embedding) $f: M -> RR^n$,
-then it's differential $dif f: T_p M -> T_p RR^n$, is called the push-forward
-and tells us how our intrinsic tangential vectors are being stretched when viewed geometrically.
-
-Computationally this differential $dif f$ can be represented, since it is a linear map, by
-a Jacobi Matrix $J$.
-
-The differential tells us also how to take an inner product of our tangent
-vectors, by inducing a metric
-$
-  g(u, v) = dif f(u) dot dif f(v)
-$
-
-Computationally this metric is represented, since it's a bilinear form, by a
-metric tensor $G$.\
-The above relationship then becomes
-$
-  G = J^transp J
-$
-
-
-= Differential Form
-
-- $k$-dimensional ruler $omega in Lambda^k (Omega)$
-- ruler $omega: p in Omega |-> omega_p$ varies continuously  across manifold according to coefficent functions.
-- locally measures tangential $k$-vectors $omega_p: (T_p M)^k -> RR$
-- globally measures $k$-dimensional submanifold $integral_M omega in RR$
-
-$
-  phi: [0,1]^k -> Omega
-  quad quad
-  M = "Image" phi
-  \
-  integral_M omega =
-  limits(integral dots.c integral)_([0,1]^k) quad
-  omega_(avec(phi)(t))
-  ((diff avec(phi))/(diff t_1) wedge dots.c wedge (diff avec(phi))/(diff t_k))
-  dif t_1 dots dif t_k
-$
-
-An arbitrary differential form can be written as (with Einstein sum convention)
-$
-  alpha = 1/k!
-  alpha_(i_1 dots i_k) dif x^(i_1) wedge dots.c wedge dif x^(i_k)
-  = sum_(i_1 < dots < i_k) 
-  alpha_(i_1 dots i_k) dif x^(i_1) wedge dots.c wedge dif x^(i_k)
-$
-
 #pagebreak()
-= Exterior Calculus in 3D (vs Vector Calculus)
-
-You can think of $k$-vector field as a *density* of infinitesimal oriented $k$-dimensional.
-
-The differential $k$-form is just a $k$-form field, which is the dual measuring object.
-
-== Derivatives
-
-
-- $dif_0$: Measures how much a 0-form (scalar field) changes linearly,
-  producing a 1-form (line field).
-- $dif_1$: Measures how much a 1-form (line field) circulates areally,
-  producing a 2-form (areal field).
-- $dif_2$: Measures how much a 2-form (areal flux field) diverges volumetrically,
-  producing a 3-form (volume field).
-  
-$
-  grad &=^~ dif_0
-  quad quad
-  &&grad f = (dif f)^sharp
-  \
-  curl &=^~ dif_1
-  quad quad
-  &&curl avec(F) = (hodge dif avec(F)^flat)^sharp
-  \
-  div &=^~ dif_2
-  quad quad
-  &&"div" avec(F) = hodge dif hodge avec(F)^flat
-$
-
-Laplacian
-$
-  Delta f = div grad f = hodge dif hodge dif f
-$
-
-== Main Theorems
-
-// Gradient Theorem
-$
-  integral_C grad f dot dif avec(s) =
-  phi(avec(b)) - phi(avec(a))
-$
-// Curl Theorem
-$
-  integral.double_S curl avec(F) dot dif avec(S) =
-  integral.cont_(diff A) avec(F) dot dif avec(s)
-$
-// Divergence Theorem
-$
-  integral.triple_V "div" avec(F) dif V =
-  integral.surf_(diff V) avec(F) dot nvec(n) dif A
-$
-
-== Sobolev Spaces
-
-$
-  H (grad; Omega) &= { u: Omega -> RR : &&grad u in [L^2 (Omega)]^3 }
-  \
-  Hvec (curl; Omega) &= { avec(u): Omega -> RR^3 : &&curl u in [L^2 (Omega)]^3 }
-  \
-  Hvec (div ; Omega) &= { avec(u): Omega -> RR^3 : &&div u in L^2 (Omega) }
-$
-
-
-$
-  &H    (grad; Omega) &&=^~ H Lambda^0 (Omega) \
-  &Hvec (curl; Omega) &&=^~ H Lambda^1 (Omega) \
-  &Hvec (div ; Omega) &&=^~ H Lambda^2 (Omega) \
-$
-
-
-$
-  0 -> H (grad; Omega) limits(->)^grad Hvec (curl; Omega) limits(->)^curl Hvec (div; Omega) limits(->)^div L^2(Omega) -> 0
-  \
-  curl compose grad = 0
-  quad quad
-  div compose curl = 0
-$
-
-== FE Spaces
-
-#grid(
-  columns: (40%, 60%),
-  align: horizon,
-  $
-    &H    (grad; Omega) &&supset.eq cal(S)^0_1   (mesh) \
-    &Hvec (curl; Omega) &&supset.eq bold(cal(N))   (mesh) \
-    &Hvec (div ; Omega) &&supset.eq bold(cal(R T)) (mesh) \
-  $,
-  [
-    - Lagrangian basis on vertices $Delta_0 (mesh)$
-    - Nédélec basis on edges $Delta_1 (mesh)$
-    - Raviart-Thomas basis on faces $Delta_2 (mesh)$
-  ]
-)
-
-$
-  cal(W) Lambda^0 (mesh) &=^~ cal(S)^0_1 (mesh) \
-  cal(W) Lambda^1 (mesh) &=^~ bold(cal(N)) (mesh) \
-  cal(W) Lambda^2 (mesh) &=^~ bold(cal(R T)) (mesh) \
-$
-
-
-$
-  0 -> cal(S)^0_1 (mesh) limits(->)^grad bold(cal(N)) (mesh) limits(->)^curl bold(cal(R T)) (mesh) limits(->)^div cal(S)^(-1)_0 (mesh) -> 0
-$
-
-
-#pagebreak()
-= Main Definition and Theorems of Exterior Calculus
-
-== Exact vs Closed
-
-A fundamental fact about exterior differentiation is that $dif(dif omega) = 0$
-for any sufficiently smooth differential form $omega$.
-
-Under some restrictions on the topology of $Omega$ the converse is
-also true, which is called the exact sequence property:
-
-== Poincaré's lemma
-For a contractible domain $Omega subset.eq RR^n$ every
-$omega in Lambda^l_1 (Omega), l >= 1$, with $dif omega = 0$ is the exterior
-derivative of an ($l − 1$)–form over $Omega$.
-
-== Stokes' Theorem
-$
-  integral_Omega dif omega = integral_(diff Omega) trace omega
-$
-for all $omega in Lambda^l_1 (Omega)$
-
-
-== Leibniz Product rule
-$
-  dif (alpha wedge beta) = dif alpha wedge beta + (-1)^abs(alpha) alpha wedge dif beta
-$
-
-Using the Leibniz Rule we can derive what the exterior derivative of a 1-form
-term $alpha_j dif x^j$ must be, if we interpret this term as a wedge $alpha_j
-wedge dif x^j$ between a 0-form $alpha_j$ and a 1-form $dif x^j$.
-$
-  dif (alpha_j dif x^j)
-  = dif (alpha_j wedge dif x^j)
-  = (dif alpha_j) wedge dif x^j + alpha_j wedge (dif dif x^j)
-  = (diff alpha_j)/(diff x^i) dif x^i wedge dif x^j
-$
-
-== Integration by parts
-$
-  integral_Omega dif omega wedge eta
-  + (-1)^l integral_Omega omega wedge dif eta
-  = integral_(diff Omega) omega wedge eta
-$
-for $omega in Lambda^l (Omega), eta in Lambda^k (Omega), 0 <= l, k < n − 1, l + k = n − 1$.
-
-
-$
-  integral_Omega dif omega wedge eta
-  =
-  (-1)^(k-1)
-  integral_Omega omega wedge dif eta
-  +
-  integral_(diff Omega) "Tr" omega wedge "Tr" eta
-$
-
-$
-  inner(dif omega, eta) = inner(omega, delta eta) + integral_(diff Omega) "Tr" omega wedge "Tr" hodge eta
-$
-
-
-#pagebreak()
-
-= Exterior Derivative
-Purely topological, no geometry.
-
-In discrete settings defined as coboundary operator, through Stokes' theorem.\
-So the discrete exterior derivative is just the transpose of the boundary operator / incidence matrix.
-
-The exterior derivative is closed in the space of Whitney forms, because of the de Rham complex.
-
-George de Rham isch Schwizer!!!
-
-The local (on a single cell) exterior derivative is always the same for any cell.
-Therefore we can compute it on the reference cell.
-
-
-= Hodge Star operator
-
-The Hodge star operator is a linear operator
-$
-  hodge: Lambda^k (Omega) -> Lambda^(n-k) (Omega)
-$
-s.t.
-$
-  alpha wedge (hodge beta) = inner(alpha, beta)_(Lambda^k) vol
-  quad forall alpha in Lambda^k (Omega)
-$
-where $inner(alpha, beta)$ is the pointwise inner product on #strike[differential] $k$-forms
-meaning it's a scalar function on $Omega$.\
-$vol = sqrt(abs(g)) dif x^1 dots dif x^n$ is the volume form (top-level form $k=n$).
-
-Given a basis for $Lambda^k (Omega)$, we can get an LSE by replacing $alpha$ with each basis element.\
-This allows us to solve for $hodge beta$.\
-For a inner product on an orthonormal basis on euclidean space, the solution is explicit and doesn't involve solving an LSE.
-
-In general:\
-- $hodge 1 = vol$
-- $hodge vol = 1$
-
-Integrating the equation over $Omega$ we get
-$
-  integral_Omega alpha wedge (hodge beta)
-  = integral_Omega inner(alpha, beta)_(Lambda^k) vol
-  = inner(alpha, beta)_(L^2 Lambda^k)
-  quad forall alpha in Lambda^k (Omega)
-$
-
-This equation can be used to find the discretized weak Hodge star operator.\
-The weak variational form of our hodge star operator is the mass bilinear form
-$
-  m(u, v) = integral_Omega hodge u wedge v
-$
-After Galerkin discretization we get the mass matrix for our discretized weak Hodge star operator
-as the $L^2$-inner product on differential $k$-forms.
-$
-  amat(M)_(i j) = integral_Omega phi_j wedge hodge phi_i = inner(phi_j, phi_i)_(L^2 Lambda^k)
-$
-
-This is called the mass bilinear form / matrix, since for 0-forms, it really coincides with
-the mass matrix from Lagrangian FEM.
-
-The Hodge star operator captures geometry of problem through this inner product,
-which depends on Riemannian metric.\
-Let's see what this dependence looks like.
-
-An inner product on a vector space can be represented as a Gramian matrix given a basis.
-
-The Riemannian metric (tensor) is an inner product on the tangent vectors with
-basis $diff/(diff x^i)$.\
-The inverse metric is an inner product on covectors / 1-forms with basis $dif x^i$.\
-This can be further extended to an inner product on #strike[differential] $k$-forms
-with basis $dif x_i_1 wedge dots wedge dif x_i_k$.
-$
-  inner(dif x_I, dif x_J) = det [inner(dif x_I_i, dif x_I_j)]_(i,j)^k
-$
-Lastly we can extend this to an inner product on differential $k$-forms.\
-For (1st order) FEEC we have piecewise-linear differential $k$-forms with the
-Whitney basis $lambda_sigma$.\
-Therefore our discretized weak hodge star operator is the mass matrix, which is the Gramian matrix
-on all Whitney $k$-forms.
-
-$
-  amat(M)^k = [inner(lambda_sigma_j, lambda_sigma_i)_(L^2 Lambda^k)]_(0 <= i,j < binom(n,k))
-  = [inner(lambda_I, lambda_J)_(L^2 Lambda^k)]_(I,J in hat(cal(I))^n_k)
-$
-
-
-== Computation of Hodge Star in Tensor Index Notation
-
-Attention Einstein sum convention ahead!
-
-This is the formula for the hodge star of basis k-forms.
-$
-  hodge (dif x^(i_1) wedge dots.c wedge dif x^(i_k))
-  = sqrt(abs(det[g_(a b)])) / (n-k)! g^(i_1 j_1) dots.c g^(i_k j_k)
-  epsilon_(j_1 dots j_n) dif x^(j_(k+1)) wedge dots.c wedge dif x^(j_n)
-$
-
-Here with restricted to increasing indices $j_(k+1) < dots < j_n$
-$
-  hodge (dif x^(i_1) wedge dots.c wedge dif x^(i_k))
-  = sqrt(abs(det[g_(a b)])) sum_(j_(k+1) < dots < j_n)
-  g^(i_1 j_1) dots.c g^(i_k j_k)
-  epsilon_(j_1 dots j_n) dif x^(j_(k+1)) wedge dots.c wedge dif x^(j_n)
-$
-
-For an arbitrary differential k-form $alpha$, we have
-$
-  hodge alpha = sum_(j_(k+1) < dots < j_n)
-  (hodge alpha)_(j_(k+1) dots j_n) dif x^(j_(k+1)) wedge dots.c wedge dif x^(j_n)
-$
-
-$
-  (hodge alpha)_(j_(k+1) dots j_n)
-  = sqrt(det[g_(a b)]) / k!
-  alpha_(i_1 dots i_k) g^(i_1 j_1) dots.c g^(i_k j_k) epsilon_(j_1 dots j_n)
-$
-
 
 == DEC considerations
 
@@ -626,544 +209,7 @@ producing appropriate mass matrices. In recent work we proved that the much
 broader class of Delaunay meshes (modulo some boundary restrictions) suffice.
 
 
-= $L^2$-inner product
-
-The inner product is defined as
-$
-  inner(omega, eta)_(L^2 Lambda^k)
-  =
-  integral_Omega inner(omega_x, eta_x) "vol"
-  =
-  integral omega wedge hodge eta
-$
-
-
-= Coderivative Operator
-
-Coderivative operator $delta: Lambda^k (Omega) -> Lambda^(k-1) (Omega)$
-defined such that
-$
-  hodge delta omega = (-1)^k dif hodge omega
-  \
-  delta_k := (dif_(k-1))^* = (-1)^k space (hodge_(k-1))^(-1) compose dif_(n-k) compose hodge_k
-$
-
-For vanishing boundary it's the formal $L^2$-adjoint of the exterior derivative.
-
-
-= Sobolev Spaces
-
-$
-  H Lambda^k (Omega) = { omega in L^2 Lambda^k (Omega) : dif omega in L^2 Lambda^(k+1) (Omega) }
-$
-
-
-= (Co-) Chain-Complexes
-#v(1cm)
-
-Continuous Chain Complex
-$  
-  0 limits(<-) C_0 (Omega) limits(<-)^diff dots.c limits(<-)^diff C_n (Omega) limits(<-) 0
-  \
-  diff^2 = diff compose diff = 0
-$
-
-Simplicial Chain Complex
-$
-  0 limits(<-) Delta_0 (mesh) limits(<-)^diff dots.c limits(<-)^diff Delta_n (mesh) limits(<-) 0
-  \
-  diff^2 = diff compose diff = 0
-$
-
-Vector Calculus de Rham Complex in 3D
-$
-  0 -> H (grad; Omega) limits(->)^grad Hvec (curl; Omega) limits(->)^curl Hvec (div; Omega) limits(->)^div L^2(Omega) -> 0
-  \
-  curl compose grad = 0
-  quad quad
-  div compose curl = 0
-$
-
-
-De Rham Complex
-$
-  0 -> H Lambda^0 (Omega) limits(->)^dif dots.c limits(->)^dif H Lambda^n (Omega) -> 0
-  \
-  dif^2 = dif compose dif = 0
-$
-
-Whitney Subcomplex
-$
-  0 -> cal(W) Lambda^0 (mesh) limits(->)^dif dots.c limits(->)^dif cal(W) Lambda^n (mesh) -> 0
-$
-
-Polynomial Subcomplex
-$
-  0 -> cal(P)_r Lambda^0 (mesh) limits(->)^dif dots.c limits(->)^dif cal(P)_r Lambda^n (mesh) -> 0
-$
-
-
-  //#diagram(
-  //  edge-stroke: fgcolor,
-  //  cell-size: 15mm,
-  //  $
-  //    0 edge(->) &H(grad; Omega) edge(grad, ->) &Hvec (curl; Omega) edge(curl, ->) &Hvec (div; Omega) edge(div, ->) &L^2(Omega) edge(->) &0
-  //  $
-  //)
-
-
-
-#pagebreak()
-= Hodge-Laplace Source Problem
-
-== Primal Strong form
-$
-  Delta u = f
-$
-with $u,f in Lambda^k (Omega)$
-
-Hodge-Laplace operator
-$
-  Delta: Lambda^k (Omega) -> Lambda^k (Omega)
-  \
-  Delta = dif delta + delta dif
-$
-
-
-== Primal Weak Form
-
-Form the $L^2$-inner product with a test "function" $v in Lambda^k (Omega)$.
-$
-  Delta u = f
-$
-
-We obtain the variational equation
-$
-  u in H Lambda^k (Omega): quad quad
-  inner(Delta u, v) = inner(f, v)
-  quad quad forall v in H Lambda^k (Omega)
-$
-
-Or in integral form
-$
-  integral_Omega ((dif delta + delta dif) u) wedge hodge v = integral_Omega f wedge hodge v
-$
-
-
-If $omega$ or $eta$ vanishes on the boundary, then
-$delta$ is the formal adjoint of $dif$ w.r.t. the $L^2$-inner product.
-$
-  inner(dif omega, eta) = inner(omega, delta eta)
-$
-
-$
-  inner(Delta u, v) = inner(f, v)
-  \
-  inner((dif delta + delta dif) u, v) = inner(f, v)
-  \
-  inner((dif delta + delta dif) u, v) = inner(f, v)
-  \
-  inner(dif delta u, v) + inner(delta dif u, v) = inner(f, v)
-  \
-  inner(delta u, delta v) + inner(dif u, dif v) = inner(f, v)
-$
-
-#v(1cm)
-
-$
-  u in H Lambda^k (Omega): quad quad
-  inner(delta u, delta v) + inner(dif u, dif v) = inner(f, v)
-  quad
-  forall v in H Lambda^k (Omega)
-$
-
-$
-  u in H Lambda^k (Omega): quad
-  integral_Omega (delta u) wedge hodge (delta v) + integral_Omega (dif u) wedge hodge (dif v) = integral_Omega f wedge hodge v
-  quad
-  forall v in H Lambda^k (Omega)
-$
-
-== Galerkin Primal Weak Form
-
-$
-  u_h = sum_(i=1)^N mu_i phi_i
-  quad quad
-  v_h = phi_j
-  \
-  u in H Lambda^k (Omega): quad quad
-  inner(delta u, delta v) + inner(dif u, dif v) = inner(f, v)
-  quad quad forall v in H Lambda^k (Omega)
-  \
-  vvec(mu) in RR^N: quad
-  sum_(i=1)^N mu_i (integral_Omega (delta phi_i) wedge hodge (delta phi_j) + integral_Omega (dif phi_i) wedge hodge (dif phi_j))
-  =
-  sum_(i=1)^N mu_i integral_Omega f wedge hodge phi_j
-  quad forall j in {1,dots,N}
-$
-
-$
-  amat(A) vvec(mu) = 0
-  \
-  A =
-  [integral_Omega (delta phi_i) wedge hodge (delta phi_j)]_(i,j=1)^N
-  +
-  [integral_Omega (dif phi_i) wedge hodge (dif phi_j)]_(i,j=1)^N
-  \
-  vvec(phi) = [integral_Omega f wedge hodge phi_j]_(j=1)^N
-$
-
-
-== Mixed Strong Formulation
-
-Given $f in Lambda^k$, find $(sigma,u,p) in (Lambda^(k-1) times Lambda^k times frak(h)^k)$ s.t.
-$
-  sigma - delta u &= 0
-  quad &&"in" Omega
-  \
-  dif sigma + delta dif u &= f - p
-  quad &&"in" Omega
-  \
-  tr hodge u &= 0
-  quad &&"on" diff Omega
-  \
-  tr hodge dif u &= 0
-  quad &&"on" diff Omega
-  \
-  u perp frak(h)
-$
-
-
-== Mixed Weak Form
-
-Given $f in L^2 Lambda^k$, find $(sigma,u,p) in (H Lambda^(k-1) times H Lambda^k times frak(h)^k)$ s.t.
-$
-  inner(sigma,tau) - inner(u,dif tau) &= 0
-  quad &&forall tau in H Lambda^(k-1)
-  \
-  inner(dif sigma,v) + inner(dif u,dif v) + inner(p,v) &= inner(f,v)
-  quad &&forall v in H Lambda^k
-  \
-  inner(u,q) &= 0
-  quad &&forall q in frak(h)^k
-$
-
-== Galerkin Mixed Weak Form
-$
-  sum_j sigma_j inner(phi^(k-1)_j,phi^(k-1)_i) - sum_j u_j inner(phi^k_j,dif phi^(k-1)_i) &= 0
-  \
-  sum_j sigma_j inner(dif phi^(k-1)_j,phi^k_i) + sum_j u_j inner(dif phi^k_j,dif phi^k_i) + sum_j p_j inner(eta^k_j,phi^k_i) &= sum_j f_j inner(psi_j,phi^k_i)
-  \
-  sum_j u_j inner(phi^k_j,eta^k_i) &= 0
-$
-
-$
-  hodge sigma - dif^transp hodge u &= 0
-  \
-  hodge dif sigma + dif^transp hodge dif u + hodge H p &= hodge f
-  \
-  H^transp hodge u &= 0
-$
-
-$
-  mat(
-    hodge, -dif^transp hodge, 0;
-    hodge dif, dif^transp hodge dif, hodge H;
-    0, H^transp hodge, 0;
-  )
-  vec(sigma, u, p)
-  =
-  vec(0, hodge f, 0)
-$
-
-Alternatively we have (from the "DEC vs FEEC" poster)
-
-Given $f$, find $(sigma, u)$ s.t.
-$
-  mat(
-    hodge, -dif^transp hodge;
-    hodge dif, dif^transp hodge dif
-  )
-  vec(sigma, u)
-  =
-  vec(0, hodge(f - p))
-  \
-  "subject to" H^transp hodge u = 0
-$
-where $p$ is the harmonic part of $f$ and $H$ is a basis for discrete harmonics.
-
-#pagebreak()
-= Hodge-Laplace Eigenvalue Problem
-
-== Primal Strong Form
-$
-  (delta dif + dif delta) u = lambda u
-$
-
-== Mixed Weak Form
-
-Find $lambda in RR$, $(sigma, u) in (H Lambda^(k-1) times H Lambda^k \\ {0})$, s.t.
-$
-  inner(sigma, tau) - inner(u, dif tau) &= 0
-  quad &&forall tau in H Lambda^(k-1)
-  \
-  inner(dif sigma, v) + inner(dif u, dif v) &= lambda inner(u,v)
-  quad &&forall v in H Lambda^k
-$
-
-
-== Galerkin Mixed Weak Form
-$
-  sum_j sigma_j inner(phi^(k-1)_j, phi^(k-1)_i) - sum_j u_j inner(phi^k_j, dif phi^(k-1)_i) &= 0
-  \
-  sum_j sigma_j inner(dif phi^(k-1)_j, phi^k_i) + sum_j u_j inner(dif phi^k_j, dif phi^k_i) &= lambda sum_j u_j inner(phi^k_j,phi^k_i)
-$
-
-$
-  hodge sigma - dif^transp hodge u &= 0
-  \
-  hodge dif sigma + dif^transp hodge dif u &= lambda hodge u
-$
-
-$
-  mat(
-    hodge, -dif^transp hodge;
-    hodge dif, dif^transp hodge dif;
-  )
-  vec(sigma, u)
-  =
-  lambda
-  mat(
-    0,0;
-    0,hodge
-  )
-  vec(sigma, u)
-$
-
-This is a symmetric indefinite sparse generalized matrix eigenvalue problem,
-that can be solved by an iterative eigensolver such as Krylov-Schur.
-This is also called a GHIEP problem.
-
-#pagebreak()
-
-= Derivation of Analytic Element Matrix Formulas
-
-This is the heart of the FEEC implementation!
-
-== Exterior Derivative of Whitney Forms on Reference Cell
-
-The exterior derivative of a Whitney form:
-$
-  dif lambda_(i_0 dots i_k)
-  &= k! sum_(l=0)^k (-1)^l dif lambda_i_l wedge
-  (dif lambda_i_0 wedge dots.c wedge hat(dif lambda_i_l) wedge dots.c wedge dif lambda_i_k)
-  \
-  &= k! sum_(l=0)^k (-1)^l (-1)^l
-  (dif lambda_i_0 wedge dots.c wedge dif lambda_i_l wedge dots.c wedge dif lambda_i_k)
-  \
-  &= (k+1)! dif lambda_i_0 wedge dots.c wedge dif lambda_i_k
-$
-
-Therefore for $i_0 != 0$ we have
-$
-  dif lambda_(i_0 dots i_k)
-  &= (k + 1)! dif x^(i_0-1) wedge dots.c wedge dif x^(i_k-1)
-$
-
-And for $i_0 = 0$ we have
-$
-  dif lambda_(0 i_1 dots i_k)
-  &= (k+1)! dif lambda_0 wedge dif lambda_i_1 wedge dots.c wedge dif lambda_i_k
-  \
-  &= (k+1)! (-sum_(j=0)^(n-1) dif x^j) wedge dif x^(i_1-1) wedge dots.c wedge dif x^(i_k-1)
-  \
-  &= -(k+1)! sum_(j=0)^(n-1) dif x^j wedge dif x^(i_1-1) wedge dots.c wedge dif x^(i_k-1)
-
-$
-
-
-$
-  L^k = [inner(dif lambda_tau, dif lambda_sigma)_(L^2 Lambda^(k+1) (K))]_(sigma,tau in Delta_k (K))
-$
-
-$
-  L^0 = [inner(dif lambda_j, dif lambda_i)_(L^2 Lambda^1 (K))]_(i,j in Delta_0 (K))
-$
-
-
-== Mass Bilinear form
-
-$
-  M = [inner(lambda_tau, lambda_sigma)_(L^2 Lambda^k (K))]_(sigma,tau in Delta_k (K))
-$
-
-$
-  inner(lambda_(i_0 dots i_k), lambda_(j_0 dots j_k))_(L^2)
-  = k!^2 sum_(l=0)^k sum_(m=0)^k (-)^(l+m) innerlines(
-    lambda_i_l (dif lambda_i_0 wedge dots.c wedge hat(dif lambda)_i_l wedge dots.c wedge dif lambda_i_k),
-    lambda_j_m (dif lambda_j_0 wedge dots.c wedge hat(dif lambda)_j_m wedge dots.c wedge dif lambda_j_k),
-  )_(L^2) \
-  = k!^2 sum_(l,m) (-)^(l+m) integral_K innerlines(
-    lambda_i_l (dif lambda_i_0 wedge dots.c wedge hat(dif lambda)_i_l wedge dots.c wedge dif lambda_i_k),
-    lambda_j_m (dif lambda_j_0 wedge dots.c wedge hat(dif lambda)_j_m wedge dots.c wedge dif lambda_j_k),
-  ) vol \
-  = k!^2 sum_(l,m) (-)^(l+m) integral_K lambda_i_l lambda_j_m innerlines(
-    dif lambda_i_0 wedge dots.c wedge hat(dif lambda)_i_l wedge dots.c wedge dif lambda_i_k,
-    dif lambda_j_0 wedge dots.c wedge hat(dif lambda)_j_m wedge dots.c wedge dif lambda_j_k,
-  ) vol \
-  = k!^2 sum_(l,m) (-)^(l+m) innerlines(
-    dif lambda_i_0 wedge dots.c wedge hat(dif lambda)_i_l wedge dots.c wedge dif lambda_i_k,
-    dif lambda_j_0 wedge dots.c wedge hat(dif lambda)_j_m wedge dots.c wedge dif lambda_j_k,
-  )
-  integral_K lambda_i_l lambda_j_m vol \
-$
-
-Let's assume increasing indices.
-
-For a reference simplex, we have
-
-If $i_0 != 0$
-$
-  dif lambda_i_0 wedge dots.c wedge hat(dif lambda)_i_l wedge dots.c wedge dif lambda_i_k
-  =
-  dif x^(i_0 - 1) wedge dots.c wedge hat(dif x)^(i_l - 1) wedge dots.c wedge dif x^(i_k - 1)
-$
-else if $i_0 = 0$
-$
-  dif lambda_i_0 wedge dots.c wedge hat(dif lambda)_i_l wedge dots.c wedge dif lambda_i_k
-  &=
-  (-sum_(j=0)^(n-1) dif x^j) wedge dif x^(i_1 - 1) wedge dots.c wedge hat(dif x)^(i_l - 1) wedge dots.c wedge dif x^(i_k - 1)
-  \ &=
-  -sum_(j=0)^(n-1) dif x^j wedge dif x^(i_1 - 1) wedge dots.c wedge hat(dif x)^(i_l - 1) wedge dots.c wedge dif x^(i_k - 1)
-$
-
-
-
-#pagebreak()
-= Barycentric Coordinates
-
-Barycentric coordinates exist for all $k$-simplicies.\
-They are a coordinate system relative to the simplex.\
-Where the barycenter of the simplex has coordinates $(1/k)^k$.\
-
-$
-  x = sum_(i=0)^k lambda^i (x) space v_i
-$
-with $sum_(i=0)^k lambda_i(x) = 1$ and inside the simplex $lambda_i (x) in [0,1]$ (partition of unity).
-
-$
-  lambda^i (x) = det[v_0,dots,v_(i-1),x,v_(i+1),dots,v_k] / det[x_0,dots,v_k]
-$
-
-Linear functions on simplicies can be expressed as
-$
-  u(x) = sum_(i=0)^k lambda^i (x) space u(v_i)
-$
-
-The following integral formula for powers of barycentric coordinate functions holds (NUMPDE):
-$
-  integral_K lambda_0^(alpha_0) dots.c lambda_n^(alpha_n) vol
-  =
-  n! abs(K) (alpha_0 ! space dots.c space alpha_n !)/(alpha_0 + dots.c + alpha_n + n)!
-$
-where $K in Delta_n, avec(alpha) in NN^(n+1)$.\
-The formula treats all barycoords symmetrically.
-
-For piecewise linear FE, the only relevant results are:
-$
-  integral_K lambda_i lambda_j vol
-  = abs(K)/((n+2)(n+1)) (1 + delta_(i j))
-$
-
-$
-  integral_K lambda_i vol = abs(K)/(n+1)
-$
-
-= Lagrange Basis
-#v(1cm)
-
-If we have a triangulation $mesh$, then the barycentric coordinate functions
-can be collected to form the lagrange basis.
-
-We can represent piecewiese-linear (over simplicial cells) functions on the mesh.
-$
-  u(x) = sum_(i=0)^N b^i (x) space u(v_i)
-$
-
-
-Fullfills Lagrange basis property basis.
-$
-  b^i (v_j) = delta_(i j)
-$
-
-#pagebreak()
-= Whitney Forms and Whitney Basis
-#v(1cm)
-
-Whitney $k$-forms $cal(W) Lambda^k (mesh)$ are piecewise-constant (over cells $Delta_k (mesh)$)
-differential $k$-forms.
-
-The defining property of the Whitney basis is a from pointwise to integral
-generalized Lagrange basis property (from interpolation):\
-For any two $k$-simplicies $sigma, tau in Delta_k (mesh)$, we have
-$
-  integral_sigma lambda_tau = cases(
-    +&1 quad &"if" sigma = +tau,
-    -&1 quad &"if" sigma = -tau,
-     &0 quad &"if" sigma != plus.minus tau,
-  )
-$
-
-The Whitney $k$-form basis function live on all $k$-simplicies of the mesh $mesh$.
-$
-  cal(W) Lambda^k (mesh) = "span" {lambda_sigma : sigma in Delta_k (mesh)}
-$
-
-There is a isomorphism between Whitney $k$-forms and cochains.\
-Represented through the de Rham map (discretization) and Whitney interpolation:\
-- The integration of each Whitney $k$-form over its associated $k$-simplex yields a $k$-cochain.
-- The interpolation of a $k$-cochain yields a Whitney $k$-form.\
-
-
-Whitney forms are affine invariant. \
-Let $sigma = [x_0 dots x_n]$ and $tau = [y_0 dots y_n]$ and $phi: sigma -> tau$
-affine map, such that $phi(x_i) = y_i$, then
-$
-  cal(W)[x_0 dots x_n] = phi^* (cal(W)[y_0 dots y_n])
-$
-
-The Whitney basis ${lambda_sigma}$ is constructed from barycentric coordinate functions ${lambda_i}$.
-
-$
-  lambda_(i_0 dots i_k) =
-  k! sum_(l=0)^k (-1)^l lambda_i_l
-  (dif lambda_i_0 wedge dots.c wedge hat(dif lambda_i_l) wedge dots.c wedge dif lambda_i_k)
-$
-
-Some expansions:
-#align(center)[#grid(
-  columns: 2,
-  gutter: 10%,
-  $
-    cal(W)[v_0 v_1] =
-    &-lambda_1 dif lambda_0
-     + lambda_0 dif lambda_1 
-    \
-    cal(W)[v_0 v_1 v_2] =
-    &+2 lambda_2 (dif lambda_0 wedge dif lambda_1) \
-    &-2 lambda_1 (dif lambda_0 wedge dif lambda_2) \
-    &+2 lambda_0 (dif lambda_1 wedge dif lambda_2) \
-  $,
-  $
-    cal(W)[v_0 v_1 v_2 v_3] =
-    - &6 lambda_3 (dif lambda_0 wedge dif lambda_1 wedge dif lambda_2) \
-    + &6 lambda_2 (dif lambda_0 wedge dif lambda_1 wedge dif lambda_3) \
-    - &6 lambda_1 (dif lambda_0 wedge dif lambda_2 wedge dif lambda_3) \
-      &6 lambda_0 (dif lambda_1 wedge dif lambda_2 wedge dif lambda_3) \
-  $
-)]
-
-#pagebreak()
+= Reference Objects
 
 == Reference 1-simplex
 
@@ -1605,15 +651,6 @@ $
   cal(N)(L^k) = frak(h)^k, quad frak(h)^k perp cal(R)(L^k)
 $
 
-In 3D we have the following domain(!) complexes:
-$
-  0 -> H^1 ->^grad H(curl) ->^curl H(div) ->^div L^2 -> 0
-  \
-  0 <- L^2 <-^(-div) H0(div) <-^curl H0(curl) <-^(-grad) H0^1 <- 0
-$
-The full spaces $W$ are always $L^2$.
-
-
 The Hodge-Laplace problem is\
 Given $f in W$, find $u in D(L)$ s.t.
 $
@@ -1733,6 +770,24 @@ $
 #pagebreak()
 === Hodge Laplacian in 3D
 
+
+In 3D we have the following domain(!) complexes:
+$
+  0 -> H^1 ->^grad H(curl) ->^curl H(div) ->^div L^2 -> 0
+  \
+  0 <- L^2 <-^(-div) H0(div) <-^curl H0(curl) <-^(-grad) H0^1 <- 0
+$
+The full spaces $W$ are always $L^2$.
+
+In $RR^3$ the differential operators are computed as
+$
+  grad u = vec(diff_x u, diff_y u, diff_z u)
+  quad
+  curl avec(u) = vec(diff_y u_z - diff_z u_y, diff_z u_x - diff_x u_z, diff_x u_y - diff_y u_x)
+  quad
+  div avec(u) = diff_x u_x + diff_y u_y + diff_z u_z
+$
+
 #table(
   columns: 6,
   align: center,
@@ -1747,12 +802,14 @@ $
 The problems are the same mirrored about the horizontal just with different
 boudnary conditions. \
 The 0-form and n-form problems are scalar Laplacians with Neumann and Dirichlet b.c. respectively. \
-The 1-form and 2-form problems are vector Laplacians with magnetic and ? b.c. respectively. \
+The 1-form and 2-form problems are vector Laplacians with magnetic and electric b.c. respectively. \
 
 The domain of $d^*$ is always $H0(d^*)$, meaning it is a space that consists of forms that are zero on the boundary.
 From this we get all boundary condtions of our problems.
-The primal natural b.c. come from the term $d^star d$, meaning the derivative of the function needs to be zero on the boundary.
-The primal essential b.c. come from the term $d d^star$, meaning the function needs to be zero on the boundary.
+The primal natural b.c. come from the term $d^star d$, meaning the derivative of
+the function needs to be zero on the boundary. $tr_(diff Omega) dif u = 0$.
+The primal essential b.c. come from the term $d d^star$, meaning the function
+needs to be zero on the boundary. $tr_(diff Omega) u = 0$.
 In the primal weak formulation the essential bc are imposed on the spaces directly and the
 natural bc are implied the variational formulation.
 For the mixed weak all bc are natural! There are no essential ones imposed on the space!
@@ -1820,3 +877,509 @@ Never violated, because Betti numbers always zero, right?
 No harmonic three forms.
 
 The Poincaré inequality doesn't say anything.
+
+=== Hodge Laplacian in 2D
+
+In 2D we have the following domain complex (unverified):
+$
+  0 -> H^1 ->^grad H(scurl) ->^scurl L^2 -> 0
+  \
+  0 <- L^2 <-^(-div) H0(rot) <-^(-rot) H0^1 <- 0
+$
+
+
+In $RR^2$ the differential operators are computed as (unverified)
+$
+  grad u = vec(diff_x u, diff_y u)
+  quad
+  scurl avec(u) = diff_x u_y - diff_y u_x
+  quad
+  rot u = vec(-diff_y u, diff_x u)
+$
+
+#table(
+  columns: 6,
+  align: center,
+  //stroke: (x, y) => if y == 0 {(bottom: fgcolor)},
+  stroke: fgcolor,
+  table.header($k$, $L_k = dif^star dif + dif dif^star$, $tilde(L)_k = inner(dif, dif) + inner(dif^star, dif^star)$, [natural BC], [essential BC], $V^(k-1) times V^k$),
+  $0$, $-div grad + 0$, $inner(grad, grad) + 0$, $diff u\/diff n$, [-], $H^1$,
+  $1$, $-rot scurl - grad div$, $inner(scurl, scurl) + inner(div, div)$, $curl u times n$, $u dot n$, $H^1 times H(curl)$,
+  $2$, $0 - scurl rot$, $0 + inner(rot, rot)$, [-], $u times n$, $H(curl) times L^2$,
+)
+
+The 1-form Hodge-Laplacian is also a vector laplacian, which in
+orthonormal cartesian coordinates is just a scalar laplacian applied
+to each component.
+
+= Random stuff
+
+== Exact vs Closed
+
+A fundamental fact about exterior differentiation is that $dif(dif omega) = 0$
+for any sufficiently smooth differential form $omega$.
+
+Under some restrictions on the topology of $Omega$ the converse is
+also true, which is called the exact sequence property:
+
+$
+  omega in Lambda^k: quad
+  dif omega = 0 => omega = dif eta
+  quad beta_k = 0
+$
+
+$
+  grad F = 0 &=> F = "const"
+  quad beta_0 = 0
+  \
+  curl F = 0 &=> F = grad f
+  quad beta_1 = 0
+  \
+  div F = 0  &=> F = curl A
+  quad beta_2 = 0
+$
+
+$
+  frak(H)^k = {omega | dif omega = 0}/{omega | dif eta = omega}
+$
+
+== Poincaré's lemma
+
+For a contractible domain $Omega subset.eq RR^n$ every
+$omega in Lambda^l_1 (Omega), l >= 1$, with $dif omega = 0$ is the exterior
+derivative of an ($l − 1$)–form over $Omega$.
+
+- Constant vector field has zero gradient
+- Curlfree vector field has a scalar potential
+- divergencefree vector field has a vector potential (take curl of it)
+
+== De Rham Cohomology
+
+There is a dual notion to homology, called cohomology.
+The most important of which is going to be de Rham cohomology.
+Which makes statements about the existance of the existance of anti-derivaties of
+differential forms and differential forms that have derivative 0.
+It will turn out that the homology of PDE domain and the cohomology
+of the differential forms is isomorphic.
+
+Okay let's formally define what homology is.
+The main object of study is a chain complex.
+
+
+
+This gives us a cell complex.
+
+Chain Complex: Sequence of algebras and linear maps
+
+$
+  dots.c -> V_(k+1) ->^(diff_(k+1)) V_k ->^(diff_k) V_(k-1) -> dots.c
+  quad "with" quad
+  diff_k compose diff_(k+1) = 0
+$
+
+Graded algebra $V = plus.big.circle_k V_k$ with graded linear operator $diff = plus.big.circle_k diff_k$ of degree -1,
+such that $diff compose diff = 0$.
+
+$V_k$: $k$-chains \
+$diff_k$: $k$-th boundary operator \
+$frak(Z)_k = ker diff_k$: $k$-cycles \
+$frak(B)_k = im diff_(k+1)$: $k$-boundaries \
+$frak(H)_k = frak(Z)_k \/ frak(B)_k$: $k$-th homology space \
+
+The main star of the show is the homology space $frak(H)_k$, which is a quotient
+space of the $k$-cycles divided by the $k$-boundaries.
+
+The dimension of the $k$-th homology space is equal to the $k$-th Betti numbers.
+$
+  dim frak(H)_k = B_k
+$
+
+Therefore knowing the homology space of a topological space gives us the information
+about all the holes of the space.
+
+Dual to homology there is also cohomology, which is basically just homology
+on the dual space of $k$-chains, which are the $k$-cochains. These are functions
+on the simplicies to the integeres $ZZ$.
+
+The homology and cohomology are isomorphic.
+
+Homology and Cohomology will be very important to the proper treatment of FEEC.
+
+== Hodge Theory
+
+Wikipedia:\
+A method for studying the cohomology groups of a smooth manifold M using partial
+differential equations. The key observation is that, given a Riemannian metric
+on M, every cohomology class has a canonical representative, a differential form
+that vanishes under the Laplacian operator of the metric. Such forms are called
+harmonic.
+built on the work of Georges de Rham on de Rham cohomology.
+
+== De Rham Theorem
+
+Singular cohomology with real coefficients is isomorphic to de Rham cohomology.
+
+The de Rham map is important for us as discretization of differential forms.
+It is the projection of differential $k$-forms onto $k$-cochains,
+which are functions defined on the $k$-simplicies of the mesh.
+
+// Section with most math compared to code
+= Exterior Calculus of Differential Forms
+
+
+
+== Exterior Calculus as Generalization of Vector Calculus
+
+
+
+You can think of $k$-vector field as a *density* of infinitesimal oriented $k$-dimensional.
+The differential $k$-form is just a $k$-form field, which is the dual measuring object.
+
+Exterior Calculus exclusively cares about multiform-fields and not really about
+multivector-fields. This is because multiforms can naturally be defined as integrands.
+
+
+An arbitrary differential form can be written as (with Einstein sum convention)
+$
+  alpha = 1/k!
+  alpha_(i_1 dots i_k) dif x^(i_1) wedge dots.c wedge dif x^(i_k)
+  = sum_(i_1 < dots < i_k) 
+  alpha_(i_1 dots i_k) dif x^(i_1) wedge dots.c wedge dif x^(i_k)
+$
+
+
+Differential Forms are sections of the exterior cotangent bundle.
+$
+  Lambda^k (Omega) = Gamma (wedge.big^k T^* (Omega))
+$
+
+== Integration
+
+WIKIPEDIA:
+A differential k-form can be integrated over an oriented k-dimensional manifold.
+When the k-form is defined on an n-dimensional manifold with n > k, then the
+k-form can be integrated over oriented k-dimensional submanifolds. If k = 0,
+integration over oriented 0-dimensional submanifolds is just the summation
+of the integrand evaluated at points, according to the orientation of those
+points. Other values of k = 1, 2, 3, ... correspond to line integrals, surface
+integrals, volume integrals, and so on. There are several equivalent ways to
+formally define the integral of a differential form, all of which depend on
+reducing to the case of Euclidean space.
+
+
+- $k$-dimensional ruler $omega in Lambda^k (Omega)$
+- ruler $omega: p in Omega |-> omega_p$ varies continuously  across manifold according to coefficent functions.
+- locally measures tangential $k$-vectors $omega_p: (T_p M)^k -> RR$
+- globally measures $k$-dimensional submanifold $integral_M omega in RR$
+
+$
+  phi: [0,1]^k -> Omega
+  quad quad
+  M = "Image" phi
+  \
+  integral_M omega =
+  limits(integral dots.c integral)_([0,1]^k) quad
+  omega_(avec(phi)(t))
+  ((diff avec(phi))/(diff t_1) wedge dots.c wedge (diff avec(phi))/(diff t_k))
+  dif t_1 dots dif t_k
+$
+
+== Exterior Derivative
+
+The exterior derivative unifies all the derivatives from vector calculus.
+In 3D we have:
+
+$
+  grad &=^~ dif_0
+  quad quad
+  &&grad f = (dif f)^sharp
+  \
+  curl &=^~ dif_1
+  quad quad
+  &&curl avec(F) = (hodge dif avec(F)^flat)^sharp
+  \
+  div &=^~ dif_2
+  quad quad
+  &&"div" avec(F) = hodge dif hodge avec(F)^flat
+$
+
+- $dif_0$: Measures how much a 0-form (scalar field) changes linearly,
+  producing a 1-form (line field).
+- $dif_1$: Measures how much a 1-form (line field) circulates areally,
+  producing a 2-form (areal field).
+- $dif_2$: Measures how much a 2-form (areal flux field) diverges volumetrically,
+  producing a 3-form (volume field).
+  
+
+Purely topological, no geometry.
+
+== Stokes' Theorem
+
+Stokes' theorem unifies the main theorems from vector calculus.
+
+Gradient Theorem
+$
+  integral_C grad f dot dif avec(s) =
+  phi(avec(b)) - phi(avec(a))
+$
+
+Curl Theorem (Ordinary Stokes' Theorem)
+$
+  integral.double_S curl avec(F) dot dif avec(S) =
+  integral.cont_(diff S) avec(F) dot dif avec(s)
+$
+
+Divergence Theorem (Gauss theorem)
+$
+  integral.triple_V "div" avec(F) dif V =
+  integral.surf_(diff V) avec(F) dot nvec(n) dif A
+$
+
+
+$
+  integral_Omega dif omega = integral_(diff Omega) trace omega
+$
+for all $omega in Lambda^l_1 (Omega)$
+
+
+== Leibniz Product rule
+$
+  dif (alpha wedge beta) = dif alpha wedge beta + (-1)^abs(alpha) alpha wedge dif beta
+$
+
+Using the Leibniz Rule we can derive what the exterior derivative of a 1-form
+term $alpha_j dif x^j$ must be, if we interpret this term as a wedge $alpha_j
+wedge dif x^j$ between a 0-form $alpha_j$ and a 1-form $dif x^j$.
+$
+  dif (alpha_j dif x^j)
+  = dif (alpha_j wedge dif x^j)
+  = (dif alpha_j) wedge dif x^j + alpha_j wedge (dif dif x^j)
+  = (diff alpha_j)/(diff x^i) dif x^i wedge dif x^j
+$
+
+== Integration by parts
+$
+  integral_Omega dif omega wedge eta
+  + (-1)^l integral_Omega omega wedge dif eta
+  = integral_(diff Omega) omega wedge eta
+$
+for $omega in Lambda^l (Omega), eta in Lambda^k (Omega), 0 <= l, k < n − 1, l + k = n − 1$.
+
+
+$
+  integral_Omega dif omega wedge eta
+  =
+  (-1)^(k-1)
+  integral_Omega omega wedge dif eta
+  +
+  integral_(diff Omega) "Tr" omega wedge "Tr" eta
+$
+
+$
+  inner(dif omega, eta) = inner(omega, delta eta) + integral_(diff Omega) "Tr" omega wedge "Tr" hodge eta
+$
+
+
+== Hodge Star operator and $L^2$-inner product
+
+This can be extended to an $L^2$-inner product on $Lambda^k (Omega)$
+by integrating the pointwise inner product with respect to the volume
+from $vol$ associated to $g$.
+
+$
+  (omega, tau) |-> inner(omega, tau)_(L^2 Lambda^k) :=
+  integral_M inner(omega(p), tau(p))_p vol
+  = integral_M omega wedge hodge tau
+$
+
+The Hodge star operator is a linear operator
+$
+  hodge: Lambda^k (Omega) -> Lambda^(n-k) (Omega)
+$
+s.t.
+$
+  alpha wedge (hodge beta) = inner(alpha, beta)_(Lambda^k) vol
+  quad forall alpha in Lambda^k (Omega)
+$
+where $inner(alpha, beta)$ is the pointwise inner product on #strike[differential] $k$-forms
+meaning it's a scalar function on $Omega$.\
+$vol = sqrt(abs(g)) dif x^1 dots dif x^n$ is the volume form (top-level form $k=n$).
+
+Given a basis for $Lambda^k (Omega)$, we can get an LSE by replacing $alpha$ with each basis element.\
+This allows us to solve for $hodge beta$.\
+For a inner product on an orthonormal basis on euclidean space, the solution is explicit and doesn't involve solving an LSE.
+
+In general:\
+- $hodge 1 = vol$
+- $hodge vol = 1$
+
+== Codifferential
+
+
+Coderivative operator $delta: Lambda^k (Omega) -> Lambda^(k-1) (Omega)$
+defined such that
+$
+  hodge delta omega = (-1)^k dif hodge omega
+  \
+  delta_k := (dif_(k-1))^* = (-1)^k space (hodge_(k-1))^(-1) compose dif_(n-k) compose hodge_k
+$
+
+For vanishing boundary it's the formal $L^2$-adjoint of the exterior derivative.
+
+
+== Hodge star operator
+
+Computationally we are working in some basis. The following
+formulas are relevant for the implementation.
+They are written in tensor index notation and make
+use of the einstein sum convention.
+
+For multivectors we use the metric tensor. For multiforms we use the inverse metric tensor.
+
+This is the formula for the hodge star of basis k-forms.
+$
+  hodge (dif x^(i_1) wedge dots.c wedge dif x^(i_k))
+  = sqrt(abs(det[g_(a b)])) / (n-k)! g^(i_1 j_1) dots.c g^(i_k j_k)
+  epsilon_(j_1 dots j_n) dif x^(j_(k+1)) wedge dots.c wedge dif x^(j_n)
+$
+
+Here with restricted to increasing indices $j_(k+1) < dots < j_n$
+$
+  hodge (dif x^(i_1) wedge dots.c wedge dif x^(i_k))
+  = sqrt(abs(det[g_(a b)])) sum_(j_(k+1) < dots < j_n)
+  g^(i_1 j_1) dots.c g^(i_k j_k)
+  epsilon_(j_1 dots j_n) dif x^(j_(k+1)) wedge dots.c wedge dif x^(j_n)
+$
+
+For an arbitrary differential k-form $alpha$, we have
+$
+  hodge alpha = sum_(j_(k+1) < dots < j_n)
+  (hodge alpha)_(j_(k+1) dots j_n) dif x^(j_(k+1)) wedge dots.c wedge dif x^(j_n)
+$
+
+$
+  (hodge alpha)_(j_(k+1) dots j_n)
+  = sqrt(det[g_(a b)]) / k!
+  alpha_(i_1 dots i_k) g^(i_1 j_1) dots.c g^(i_k j_k) epsilon_(j_1 dots j_n)
+$
+
+== Sobolev Space of Differential Forms
+
+$H Lambda^k (Omega)$ is the sobolev space of differential forms.
+It is defined as the space of differential forms that have a square integrable
+exterior derivative.
+
+$
+  H Lambda^k (Omega) = { omega in L^2 Lambda^k (Omega) mid(|) dif omega in L^2 Lambda^(k+1) (Omega) }
+$
+
+This is a very general definition that unifies the sobolev spaces known
+from vector calculus.
+In $RR^3$ we have the following isomorphisms.
+
+$
+  H Lambda^0 (Omega)
+  &=^~
+  H (grad; Omega)
+  \
+  H Lambda^1 (Omega)
+  &=^~
+  Hvec (curl; Omega)
+  \
+  H Lambda^2 (Omega)
+  &=^~
+  Hvec (div ; Omega)
+$
+
+
+== De Rham Complex of Differential Forms
+
+These sobolev space together with their respective exterior derivatives
+form a cochain complex, called the de Rham complex of differential forms.
+$
+  0 -> H Lambda^0 (Omega) limits(->)^dif dots.c limits(->)^dif H Lambda^n (Omega) -> 0
+  \
+  dif^2 = dif compose dif = 0
+$
+
+
+//#diagram(
+//  edge-stroke: fgcolor,
+//  cell-size: 15mm,
+//  $
+//    0 edge(->) &H(grad; Omega) edge(grad, ->) &Hvec (curl; Omega) edge(curl, ->) &Hvec (div; Omega) edge(div, ->) &L^2(Omega) edge(->) &0
+//  $
+//)
+
+It generalizes the 3D vector calculus de Rham complex.
+
+$
+  0 -> H (grad; Omega) limits(->)^grad Hvec (curl; Omega) limits(->)^curl Hvec (div; Omega) limits(->)^div L^2(Omega) -> 0
+  \
+  curl compose grad = 0
+  quad quad
+  div compose curl = 0
+$
+
+= What is our Mesh?
+
+- Simplicial Complex $K$, vs
+- Triangulation: Homeomorphism $|K| -> X$ from geometric realization $|K|$ to topological space $X$; using the simplicial complex as a _model_ for the topological space, vs
+- Piecewise-Linear (PL) Manifold/Structure/Atlas: Atlas $cal(A)$ with piecewise-linear transition maps (statement about local coordinates)
+
+Piecewise-Flat Metric is something else.
+
+A simplicial manifold is a simplicial complex
+for which the geometric realization is homeomorphic to a topological manifold.
+This is essentialy the concept of a triangulation in topology.
+This can mean simply that a neighborhood of each vertex (the set of simplicies that contain that point as a vertex)
+is homeomorphic to a $n$-dimensional ball.
+
+
+A combinatorial manifold is a kind of manifold which is a discretization of
+a manifold. It usually means a piecewise linear manifold made by simplicial
+complexes.
+
+== Whitney
+
+The Whitney space unifies and generalizes the Lagrangian, Raviart-Thomas and Nédélec
+Finite Element spaces.
+$
+  cal(W) Lambda^0 (mesh) &=^~ cal(S)^0_1 (mesh) \
+  cal(W) Lambda^1 (mesh) &=^~ bold(cal(N)) (mesh) \
+  cal(W) Lambda^2 (mesh) &=^~ bold(cal(R T)) (mesh) \
+$
+
+The Whitney Subcomplex
+$
+  0 -> cal(W) Lambda^0 (mesh) limits(->)^dif dots.c limits(->)^dif cal(W) Lambda^n (mesh) -> 0
+$
+
+It generalizes the discrete subcomplex from vector calculus.
+$
+  0 -> cal(S)^0_1 (mesh) limits(->)^grad bold(cal(N)) (mesh) limits(->)^curl bold(cal(R T)) (mesh) limits(->)^div cal(S)^(-1)_0 (mesh) -> 0
+$
+
+
+#align(center)[#grid(
+  columns: 2,
+  gutter: 10%,
+  $
+    cal(W)[v_0 v_1] =
+    &-lambda_1 dif lambda_0
+     + lambda_0 dif lambda_1 
+    \
+    cal(W)[v_0 v_1 v_2] =
+    &+2 lambda_2 (dif lambda_0 wedge dif lambda_1) \
+    &-2 lambda_1 (dif lambda_0 wedge dif lambda_2) \
+    &+2 lambda_0 (dif lambda_1 wedge dif lambda_2) \
+  $,
+  $
+    cal(W)[v_0 v_1 v_2 v_3] =
+    - &6 lambda_3 (dif lambda_0 wedge dif lambda_1 wedge dif lambda_2) \
+    + &6 lambda_2 (dif lambda_0 wedge dif lambda_1 wedge dif lambda_3) \
+    - &6 lambda_1 (dif lambda_0 wedge dif lambda_2 wedge dif lambda_3) \
+      &6 lambda_0 (dif lambda_1 wedge dif lambda_2 wedge dif lambda_3) \
+  $
+)]
+

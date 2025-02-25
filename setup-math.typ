@@ -62,6 +62,9 @@
 #let curl = $avec("curl")$
 #let div = $"div"$
 
+#let scurl = $"curl"$
+#let rot = $avec("rot")$
+
 
 #let Hvec = $avec(H)$
 #let H0 = $limits(H)^circle.stroked.small$
